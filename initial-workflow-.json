@@ -1,0 +1,71 @@
+{
+  "updatedAt": "2026-02-02T12:51:51.716Z",
+  "createdAt": "2026-02-02T10:30:20.515Z",
+  "id": "Il0OvNW6k9dzqG6HI-X4U",
+  "name": "Initial Workflow",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1f36714f-c452-4d4d-a230-c68609faecaf",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=55.6761&longitude=12.5683&current_weather=true",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0f4d022a-d132-435f-bf6f-d99ad4a9cce9",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "1de710cd-61cd-48a2-a4d6-72d4456a4fac",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-02T10:30:20.520Z",
+      "createdAt": "2026-02-02T10:30:20.520Z",
+      "role": "workflow:owner",
+      "workflowId": "Il0OvNW6k9dzqG6HI-X4U",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
