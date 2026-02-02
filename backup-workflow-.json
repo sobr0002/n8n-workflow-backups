@@ -1,0 +1,134 @@
+{
+  "updatedAt": "2026-02-02T14:33:59.667Z",
+  "createdAt": "2026-02-02T12:52:28.989Z",
+  "id": "coPRDwZa9m2LeVkFnpZkM",
+  "name": "Backup Workflow",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "bc0897e3-a684-42be-9e3d-eeb0c37fbd83",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/workflows",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "n8nApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "f7a07452-d54f-476a-afde-68b2e9e238a6",
+      "name": "HTTP Request",
+      "credentials": {
+        "n8nApi": {
+          "id": "gm52ktTSk8UEQzvj",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflows = items[0].json.data;\n\nreturn workflows.map(wf => {\n  const jsonText = JSON.stringify(wf, null, 2);\n  return {\n    json: {\n      id: wf.id,\n      name: wf.name,\n      path: `workflows/workflow-${wf.id}.json`,\n      contentBase64: Buffer.from(jsonText, 'utf8').toString('base64'),\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "3a09d9be-f27c-4bf7-b7b2-279327ea6224",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "mode": "each",
+        "options": {
+          "fileName": "=workflow-{{$json.id}}.json"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "c7c09b0f-47d9-4581-93ba-485c4ac64879",
+      "name": "Convert to File"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "67db2301-83c1-4d54-9b18-f215e1c75112",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-02T12:52:28.993Z",
+      "createdAt": "2026-02-02T12:52:28.993Z",
+      "role": "workflow:owner",
+      "workflowId": "coPRDwZa9m2LeVkFnpZkM",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
