@@ -1,0 +1,43 @@
+{
+  "updatedAt": "2026-02-02T14:42:41.645Z",
+  "createdAt": "2026-02-02T14:42:19.910Z",
+  "id": "NWbb8NJcXFlU-QQ66zuHx",
+  "name": "Backup Workflow GitHub",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -32
+      ],
+      "id": "33871a02-f83b-43cf-b0b2-5f383c7a5ef6",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "6533eb30-94f6-4170-ad19-cbff9f31129d",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-02T14:42:19.915Z",
+      "createdAt": "2026-02-02T14:42:19.915Z",
+      "role": "workflow:owner",
+      "workflowId": "NWbb8NJcXFlU-QQ66zuHx",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
