@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-02-11T15:27:12.552Z",
+  "updatedAt": "2026-02-23T09:23:45.879Z",
   "createdAt": "2026-02-09T16:19:03.901Z",
   "id": "HjrySBnE91oVVnHcBz2lH",
   "name": "Sportsletter",
@@ -12,7 +12,7 @@
         "text": "=Gennemgå disse {{ $json.count }} artikler og vælg de 10 mest interessante til et sports-nyhedsbrev.\n\nArtikler:\n{{ $json.articleList }}\n\nUDVÆLGELSESKRITERIER (i prioriteret rækkefølge):\n1. Danske atleter og hold (højeste prioritet)\n2. Store internationale begivenheder (OL, VM, EM, Champions League, Super Bowl)\n3. Overraskende resultater eller historier\n4. Vigtige kampe og konkurrencer\n5. Sportslige milepæle og rekorder\n6. Interessante personhistorier fra sportsverdenen\n\nIGNORER:\n- Almindelige ligakampe uden dansk deltagelse\n- Gentagelser af samme begivenhed\n- Artikler uden konkret indhold (tomme sammendrag)\n\nRETURFORMAT:\nReturner kun indices (tal fra 0 til {{ $json.count - 1 }}) af de valgte artikler.\n\nVælg op til 10 artikler. Hvis der er færre end 10 gode artikler, vælg bare dem der er værd at inkludere.",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "Du er en sports-ekspert der kuraterer danske sportsnyheder. Du vælger de mest interessante artikler til et dagligt nyhedsbrev om dansk og international sport."
+          "systemMessage": "=Du er en sports-ekspert der kuraterer danske sportsnyheder. Du vælger de mest interessante artikler til et dagligt nyhedsbrev om dansk og international sport."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -607,7 +607,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "b9739fa5-8c3f-4675-a873-0a0e87c4b17b",
+  "versionId": "65abbcae-3d1a-4758-b759-ab6078830c88",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
