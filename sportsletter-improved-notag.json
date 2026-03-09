@@ -1,0 +1,2151 @@
+{
+  "updatedAt": "2026-02-24T18:55:52.037Z",
+  "createdAt": "2026-02-23T10:18:18.972Z",
+  "id": "mqk59nXOAMRr5tQr",
+  "name": "Sportsletter improved",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            },
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1904,
+        -32
+      ],
+      "id": "975eb5e3-ecf8-4e5a-85bb-b01f3e6630eb",
+      "name": "Trigger en gang dagligt"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"selectedIndices\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"integer\"\n      },\n      \"description\": \"Array af artikel indices (0-baseret) som er valgt til nyhedsbrevet\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"Kort forklaring på hvorfor disse artikler blev valgt\"\n    }\n  },\n  \"required\": [\"selectedIndices\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        144
+      ],
+      "id": "6e831ce4-6a7c-4cf2-b93d-53545f0c46ce",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hent AI output\nconst aiOutput = $json.output || $json;\nconsole.log(\"=== AI OUTPUT ===\");\nconsole.log(\"Selected indices:\", aiOutput.selectedIndices);\nconsole.log(\"Reasoning:\", aiOutput.reasoning);\n\n// Hent selectedIndices\nlet selectedIndices = aiOutput.selectedIndices || [];\n\nif (!Array.isArray(selectedIndices) || selectedIndices.length === 0) {\n  console.log(\"⚠️ Ingen indices fra AI, bruger fallback\");\n  selectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];\n}\n\nconsole.log(`\\n🎯 AI valgte ${selectedIndices.length} artikler:`, selectedIndices);\n\n// Hent artikler fra \"Forbered til AI\" node direkte\nlet allArticles = null;\n\ntry {\n  // Prøv med præcist node navn\n  const prepareNode = $('Forbered til AI');\n  if (prepareNode && prepareNode.first()) {\n    const prepareData = prepareNode.first().json;\n    allArticles = prepareData.articles || prepareData.data;\n    console.log(`✅ Fandt ${allArticles?.length || 0} artikler fra \"Forbered til AI\" node`);\n  }\n} catch (e) {\n  console.log(\"❌ Kunne ikke finde via $() syntax:\", e.message);\n}\n\n// Fallback: Søg i alle nodes\nif (!allArticles) {\n  console.log(\"\\n🔍 Søger i alle tilgængelige nodes...\");\n  const nodeNames = Object.keys($node);\n  console.log(\"Available nodes:\", nodeNames);\n  \n  for (const nodeName of nodeNames) {\n    try {\n      const nodeData = $node[nodeName];\n      if (nodeData && nodeData.json) {\n        if (nodeData.json.articles && Array.isArray(nodeData.json.articles)) {\n          allArticles = nodeData.json.articles;\n          console.log(`✅ Fandt artikler i node: \"${nodeName}\"`);\n          break;\n        } else if (nodeData.json.data && Array.isArray(nodeData.json.data)) {\n          allArticles = nodeData.json.data;\n          console.log(`✅ Fandt artikler i \"${nodeName}\".data`);\n          break;\n        }\n      }\n    } catch (e) {\n      // Skip denne node\n    }\n  }\n}\n\n// Final check\nif (!allArticles || !Array.isArray(allArticles)) {\n  console.log(\"\\n❌ KRITISK FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Kunne ikke finde artikler i nogen nodes\",\n      availableNodes: Object.keys($node),\n      selectedIndices: selectedIndices\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Har ${allArticles.length} artikler tilgængelige`);\n\n// Udtræk de valgte artikler\nconst selectedArticles = selectedIndices\n  .filter(i => {\n    const valid = i >= 0 && i < allArticles.length;\n    if (!valid) {\n      console.log(`⚠️ Invalid index: ${i} (max: ${allArticles.length - 1})`);\n    }\n    return valid;\n  })\n  .map(i => {\n    const article = allArticles[i];\n    console.log(`✓ Index ${i}: ${article.title.substring(0, 50)}...`);\n    return {\n      json: article\n    };\n  });\n\nconsole.log(`\\n✅ Returnerer ${selectedArticles.length} artikler`);\n\nif (selectedArticles.length === 0) {\n  return [{\n    json: {\n      error: \"Ingen gyldige artikler kunne udtrækkes\"\n    }\n  }];\n}\n\nreturn selectedArticles;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        -32
+      ],
+      "id": "4fd165d1-9ca6-4f43-a81c-c535ff46f85e",
+      "name": "Udtræk valgte artikler"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -768,
+        144
+      ],
+      "id": "2f511ecb-5194-44b1-b5ae-2b6a64935b9e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PxuVQEwJfOlSgdpe",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  let xmlData = item.json.data || item.json.body || item.json;\n  \n  if (typeof xmlData === 'object' && xmlData !== null) {\n    xmlData = JSON.stringify(xmlData);\n  }\n  \n  if (!xmlData || typeof xmlData !== 'string') {\n    console.log(\"Kunne ikke finde XML data\");\n    continue;\n  }\n  \n  const cleanCDATA = (text) => {\n    if (!text) return '';\n    return text.replace(/<!\\[CDATA\\[(.*?)\\]\\]>/gs, '$1').trim();\n  };\n  \n  const stripHTML = (html) => {\n    if (!html) return '';\n    return html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  };\n  \n  const extractTag = (xml, tag) => {\n    const regex = new RegExp(`<${tag}[^>]*>([\\\\s\\\\S]*?)<\\\\/${tag}>`, 'i');  // FIX: ( ) ikke ` `\n    const match = xml.match(regex);\n    return match ? cleanCDATA(match[1]) : '';\n  };\n  \n  const feedTitle = extractTag(xmlData, 'title') || 'DR Sport';\n  \n  const itemRegex = /<item[^>]*>([\\s\\S]*?)<\\/item>/gi;\n  const itemMatches = [];\n  let match;\n  \n  while ((match = itemRegex.exec(xmlData)) !== null) {\n    itemMatches.push(match[1]);\n  }\n  \n  console.log(`Fandt ${itemMatches.length} artikler i feedet`);  // FIX: ( ) ikke ` `\n  \n  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);\n  \n  for (const itemXml of itemMatches) {\n    const title = extractTag(itemXml, 'title');\n    const link = extractTag(itemXml, 'link');\n    const description = extractTag(itemXml, 'description');\n    const content = extractTag(itemXml, 'content:encoded') || extractTag(itemXml, 'encoded');\n    const pubDateStr = extractTag(itemXml, 'pubDate') || extractTag(itemXml, 'dc:date');\n    \n    let pubDate = new Date();\n    if (pubDateStr) {\n      pubDate = new Date(pubDateStr);\n      if (isNaN(pubDate.getTime())) {\n        pubDate = new Date();\n      }\n    }\n    \n    if (pubDate > cutoff) {\n      const summary = content || description || '';  // FIX: Sikr tom string hvis begge mangler\n      \n      items.push({\n        json: {\n          title: stripHTML(title) || 'Ingen titel',\n          link: link || '',\n          summary: stripHTML(summary).substring(0, 500),\n          published: pubDateStr || pubDate.toISOString(),\n          source: feedTitle,\n          publishedDate: pubDate.toISOString()\n        }\n      });\n    }\n  }\n}\n\nconsole.log(`Returnerer ${items.length} artikler fra sidste 48 timer`);  // FIX: ( ) ikke ` `\n\nif (items.length === 0) {\n  console.log(\"ADVARSEL: Ingen artikler fundet.\");\n  return [{\n    json: {\n      message: \"Ingen nye artikler\",\n      articles: []\n    }\n  }];\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        -32
+      ],
+      "id": "4a81753d-b4c9-4ed9-8da7-6b96757464d9",
+      "name": "RSS Parser",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hent input\nconst firstInput = $input.first().json;\n\nconsole.log(\"=== INPUT CHECK ===\");\nconsole.log(\"Input keys:\", Object.keys(firstInput));\n\n// Artiklerne ligger i 'data' array fra Aggregate\nlet allArticles = [];\n\nif (firstInput.data && Array.isArray(firstInput.data)) {\n  allArticles = firstInput.data;\n  console.log(`✅ Fandt ${allArticles.length} artikler i data array`);\n} else if (Array.isArray($input.all())) {\n  allArticles = $input.all().map(item => item.json);\n  console.log(`✅ Fandt ${allArticles.length} artikler fra input.all()`);\n}\n\nif (allArticles.length === 0) {\n  console.log(\"❌ FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Ingen artikler\",\n      articleList: \"\",\n      articles: [],\n      count: 0\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Processerer ${allArticles.length} artikler`);\nconsole.log(\"Første artikel:\", allArticles[0].title);\n\n// Lav artikel liste\nconst articleList = allArticles.map((article, index) => {\n  const title = article.title || 'Ingen titel';\n  const source = article.source || 'Ukendt kilde';\n  const published = article.published || 'Ukendt dato';\n  const summary = article.summary || '';\n  \n  const shortSummary = summary.length > 200 \n    ? summary.substring(0, 200) + '...' \n    : summary;\n  \n  return `${index}. ${title}\\n   Kilde: ${source}\\n   Dato: ${published}\\n   Sammendrag: ${shortSummary}`;\n}).join('\\n\\n');\n\nconsole.log(\"\\n✅ SUCCESS!\");\nconsole.log(`Artikel liste oprettet (${articleList.length} chars)`);\nconsole.log(\"Preview:\", articleList.substring(0, 200));\n\nreturn [{\n  json: {\n    articleList: articleList,\n    articles: allArticles,    // ← NU sender vi array, ikke 0!\n    count: allArticles.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -32
+      ],
+      "id": "8ddeb3bc-14ce-47a0-93ab-b45bb5780fde",
+      "name": "Forbered til AI"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -304,
+        -32
+      ],
+      "id": "c4c973d2-576c-4bf8-ab90-d86903394e9a",
+      "name": "Loop over artikler"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        -32
+      ],
+      "id": "0030225f-969c-4352-9887-42ab9e08a256",
+      "name": "Samler alle artikler"
+    },
+    {
+      "parameters": {
+        "url": "https://www.dr.dk/nyheder/service/feeds/sporten",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1552,
+        -32
+      ],
+      "id": "143b79f1-056c-4599-9567-0314a5eb9feb",
+      "name": "Henter nyheder DR sport"
+    },
+    {
+      "parameters": {
+        "jsCode": "const article = $json;\n\nconst beskrivelse = article.summary || 'Ingen beskrivelse';\n\nreturn {\n  json: {\n    formatted: `Titel: ${article.title || 'Ingen titel'}\nKilde: ${article.source || 'Ukendt'}\nDato: ${article.publishedDate || article.published || 'Ukendt'}\nURL: ${article.link || ''}\nBeskrivelse: ${beskrivelse}`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "7a8b6ff6-8e3b-4514-8aec-9edb6b7d63bd",
+      "name": "Gem artikel + forbered prompt"
+    },
+    {
+      "parameters": {
+        "jsCode": "let html = $json.output;\n\nhtml = String(html).replace(/\\\\n/g, '\\n').trim();\n\nconst today = new Date();\nconst subject = `📰 Dagens Sportsnyheder - ${today.toLocaleDateString('da-DK')}`;\n\nreturn {\n  json: {\n    html: html,\n    subject: subject\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        480
+      ],
+      "id": "ba6126a6-f227-4458-8345-9ff6f1c7c13a",
+      "name": "Forbered email"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst articleText = items.map((item, i) => \n  `### Artikel ${i+1}\\n${item.json.formatted}`\n).join(\"\\n\\n---\\n\\n\");\n\nconst date = new Date().toLocaleDateString('da-DK', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nreturn [{ json: { articleText, date } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "8a53fe0c-5af3-4a74-abdf-99dd6b31afc7",
+      "name": "Saml alle artikler"
+    },
+    {
+      "parameters": {
+        "jsCode": "{\n  \"titel\": \"string\",\n  \"resume\": \"string\",\n  \"kilde\": \"string\",\n  \"confidence\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        176
+      ],
+      "id": "84c09450-685a-4bd2-bd7b-3d541d0d7efc",
+      "name": "Structured output parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "sofierytterbroman95@gmail.com",
+        "subject": "Advarsel",
+        "message": "=Artikel med lav confidence blev stoppet: Titel: {{ $json.titel }} Kilde: {{ $json.kilde }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1680,
+        640
+      ],
+      "id": "dfc3dff6-e2f7-4f04-8f94-0ec5071e212c",
+      "name": "Send e-mail",
+      "webhookId": "20ae520f-9272-4323-9b14-9dbe2971ab96",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        384
+      ],
+      "id": "a7094e82-5dde-444e-83fd-f7eb7497f10e",
+      "name": "Vent på godkendelse",
+      "webhookId": "cb5cee82-6abf-4e56-8ec5-6d0b94573fa1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookUrl = $execution.resumeUrl;\n\nconst html = $('Forbered email').first().json.html;\nconst subject = $('Forbered email').first().json.subject;\n\nconst godkendUrl = `${webhookUrl}?godkend=ja`;\nconst afvisUrl = `${webhookUrl}?godkend=nej`;\n\nconst previewHtml = `\n<h2>Godkend nyhedsbrev før afsendelse</h2>\n<p>${subject}</p>\n<hr>\n${html}\n<hr>\n<p>\n  <a href=\"${godkendUrl}\" style=\"background:#28a745;color:white;padding:10px 20px;text-decoration:none;margin-right:10px\">\n    ✅ GODKEND\n  </a>\n  <a href=\"${afvisUrl}\" style=\"background:#dc3545;color:white;padding:10px 20px;text-decoration:none\">\n    ❌ AFVIS\n  </a>\n</p>\n`;\n\nreturn {\n  json: {\n    previewHtml: previewHtml,\n    subject: subject,\n    html: html\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        384
+      ],
+      "id": "f6bcefb6-129f-4115-ac36-d9f26321fdb3",
+      "name": "Forbered til godkendelse"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c782db35-5f48-49cb-8d13-26c7c7f6c8e5",
+              "name": "prompt_version",
+              "value": "summarizer_v2.0",
+              "type": "string"
+            },
+            {
+              "id": "0cb259d0-f220-4edd-8464-401da1c7998d",
+              "name": "=dato",
+              "value": "={{$now.toISO()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1744,
+        -32
+      ],
+      "id": "8e5b6d28-f5df-4c51-b304-4681be041423",
+      "name": "Angiv version"
+    },
+    {
+      "parameters": {
+        "sendTo": "sofierytterbroman95@gmail.com",
+        "subject": "Sportsletter",
+        "message": "={{ $json.html }} {{ $json.subject }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        304
+      ],
+      "id": "8b17db10-fc4a-4cc5-9efa-2d9042f527be",
+      "name": "Send til 50.000 brugere",
+      "webhookId": "78ab6966-0c86-430d-8d2c-492fd1930cbe",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81e056dd-bc3b-4438-b53d-81885a2288fc",
+              "name": "html",
+              "value": "={{ $('Forbered til godkendelse').first().json.html }}",
+              "type": "string"
+            },
+            {
+              "id": "bf0c5a1f-55e8-4afe-9985-044154a52810",
+              "name": "subject",
+              "value": "={{ $('Forbered til godkendelse').first().json.subject }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        304
+      ],
+      "id": "16cfe46a-2061-4284-9087-ae889105b29f",
+      "name": "Hent nyhedsbrev"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1475818715726610444",
+          "mode": "list",
+          "cachedResultName": "Sofie Rytters server",
+          "cachedResultUrl": "https://discord.com/channels/1475818715726610444"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1475818716531785832",
+          "mode": "list",
+          "cachedResultName": "generel",
+          "cachedResultUrl": "https://discord.com/channels/1475818715726610444/1475818716531785832"
+        },
+        "content": "Workflow afvist af Human-in-the-lopp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        48,
+        528
+      ],
+      "id": "c527bc54-9355-4b8d-b42b-74a195ac9383",
+      "name": "Notificer om afvisning",
+      "webhookId": "37d8ec93-2bb1-4232-8c58-76b4ed749d99",
+      "credentials": {
+        "discordBotApi": {
+          "id": "MC43KuFzgkNo6OgT",
+          "name": "Discord Bot account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app9LXRDaWiJYQoTH",
+          "mode": "list",
+          "cachedResultName": "Memory_newsletter",
+          "cachedResultUrl": "https://airtable.com/app9LXRDaWiJYQoTH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNCb0Z4oXwNlTmY",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app9LXRDaWiJYQoTH/tblNCb0Z4oXwNlTmY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "dato": "={{ $now }}",
+            "godkendt": "false",
+            "sendt_til": "0",
+            "prompt_version": "a2_v2.0",
+            "ai_output": "={{ $('Forbered til godkendelse').first().json.html }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "dato",
+              "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "prompt_version",
+              "displayName": "prompt_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ai_output",
+              "displayName": "ai_output",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "godkendt",
+              "displayName": "godkendt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sendt_til",
+              "displayName": "sendt_til",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -128,
+        528
+      ],
+      "id": "3185c720-d9d9-4193-9968-49d8509ccf1c",
+      "name": "Gem afvist nyhedsbrev",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "5vfV4ZY6rD7JL5XT",
+          "name": "Airtable account 1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sofierytterbroman95@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.previewHtml }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        384
+      ],
+      "id": "b96578ab-6aa6-48c4-9a33-de013171de1b",
+      "name": "HITL: Send preview",
+      "webhookId": "692a83ec-66b0-45e1-b44f-67cfe130c909",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 500,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1504,
+        688
+      ],
+      "id": "4ffe88e8-efc4-4e81-8598-3c6cf67397ae",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "PxuVQEwJfOlSgdpe",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Vurder dette nyhedsbrev:\n\n{{ $json.html }}",
+        "options": {
+          "systemMessage": "Du er kvalitetskontrollør for et dansk sportsnyhedsbrev.\nVurder udkastet på 3 parametre og svar KUN med JSON:\n\n{\n  \"faktuel_præcision\": { \"score\": 1-5, \"forklaring\": \"...\" },\n  \"tone\": { \"score\": 1-5, \"forklaring\": \"...\" },\n  \"format\": { \"score\": 1-5, \"forklaring\": \"...\" },\n  \"total\": 0-15\n}\n\nIngen anden tekst. Kun JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1504,
+        480
+      ],
+      "id": "1acdcd2d-45f7-4e15-8467-d0f5e97c94c4",
+      "name": "A3: Kvalitetssikrer nyhedsbrev"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Lav et færdigt HTML nyhedsbrev baseret på disse artikler.\nIndsæt al tekst direkte i HTML'en – brug IKKE variable eller pladsholdere.\n\nDato: {{ $json.date }}\nArtikler:\n{{ $json.articleText }}\n\nSTRUKTUR:\n1. Header: \"Dagens Sportsnyheder\" + dato\n2. Velkomst (1 sætning)\n3. Per artikel: titel som klikbart link, resumé, kilde og dato\n4. Footer: \"God læselyst!\"\n\nReturner et JSON-objekt for HVER artikel med felterne:\n- titel: artiklens overskrift\n- resume: 2-3 sætninger opsummering\n- kilde: kildens URL\n- confidence: \"high\" hvis beskrivelsen er fyldig, \n              \"medium\" hvis beskrivelsen er kort,\n              \"low\" hvis du kun har en titel at arbejde med",
+        "options": {
+          "systemMessage": "Du er sportsjournalist og HTML-udvikler for et dansk sportsnyhedsbrev.\nDu modtager råartikler og returnerer et færdigt HTML nyhedsbrev.\n\nOPSUMMERINGSREGLER:\n- 2-3 sætninger per artikel, neutral dansk tone\n- Skriv kun hvad kilden angiver – ingen gætterier\n- Start aldrig med \"Artiklen handler om...\"\n\nHTML REGLER:\n- Start med <!DOCTYPE html>\n- Returner KUN ren HTML – ingen markdown, ingen forklaring\n- Max bredde: 600px, centreret, hvid baggrund\n- Overskrifter og links: #C8102E\n- Font: Arial, sans-serif\n- Artikelspacing: 20px margin\n- Kilde og dato: font-size 12px, color #666\n- Mobil-venligt layout\n- Hold HTML'en under 4000 tegn i alt.\n\n- Maksimalt 5 artikler i nyhedsbrevet.\n- Brug minimal CSS – ingen kommentarer, ingen tomme linjer i style-blokken.\n- Du indsætter altid de faktiske værdier direkte i HTML-koden.\n- Du bruger ALDRIG {{ }} variable, pladsholdere eller skabelon-syntax i dit output."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        256,
+        -16
+      ],
+      "id": "006776ef-a4a1-412e-92c6-70bb295fc76a",
+      "name": "A2: Opsummer + nyhedsbrev"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.output;\n\n// Fjern escaped linjeskift og parse JSON\nraw = String(raw).replace(/\\\\n/g, '\\n').trim();\n\n// Fjern markdown code blocks\nraw = raw\n  .replace(/```json\\n/g, '')\n  .replace(/```\\n/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nconst parsed = JSON.parse(raw);\n\n// Beregn total hvis den mangler\nconst total = parsed.total || \n  parsed.faktuel_præcision.score + \n  parsed.tone.score + \n  parsed.format.score;\n\nreturn {\n  json: {\n    faktuel_præcision: parsed.faktuel_præcision,\n    tone: parsed.tone,\n    format: parsed.format,\n    total: total\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        480
+      ],
+      "id": "1852bf22-b909-430b-9d26-bed3b6576e85",
+      "name": "Konverter text til JSON"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 1000,
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        176
+      ],
+      "id": "5eae2442-9810-4194-843a-3741a57976f7",
+      "name": "OpenAI Chat",
+      "credentials": {
+        "openAiApi": {
+          "id": "PxuVQEwJfOlSgdpe",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f435a498-995c-43c9-8bc4-6cba62b34f99",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1040,
+        480
+      ],
+      "id": "1cb7c57c-6f2c-46df-b384-cf4d60d13d71",
+      "name": "Er kvalitetsgodkendt"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0723330c-9932-4a1d-ba95-9aefca995425",
+              "leftValue": "={{ $json.query.godkend }}",
+              "rightValue": "ja",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        384
+      ],
+      "id": "0c9c8396-dda7-4c80-9c40-b3635f2173c0",
+      "name": "Er godkendt"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app9LXRDaWiJYQoTH",
+          "mode": "list",
+          "cachedResultName": "Memory_newsletter",
+          "cachedResultUrl": "https://airtable.com/app9LXRDaWiJYQoTH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNCb0Z4oXwNlTmY",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app9LXRDaWiJYQoTH/tblNCb0Z4oXwNlTmY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "dato": "={{ $now }}",
+            "prompt_version": "A2_v2.0",
+            "ai_output": "={{ $('Forbered til godkendelse').first().json.html }}",
+            "godkendt": "true",
+            "sendt_til": "50000"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "dato",
+              "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "prompt_version",
+              "displayName": "prompt_version",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ai_output",
+              "displayName": "ai_output",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "godkendt",
+              "displayName": "godkendt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sendt_til",
+              "displayName": "sendt_til",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -128,
+        304
+      ],
+      "id": "c9cbae42-1710-4b53-be5c-b354f6f3746b",
+      "name": "Gem godkendt nyhedsbrev i DB",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "5vfV4ZY6rD7JL5XT",
+          "name": "Airtable account 1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const feedback = $('Konverter text til JSON').first().json;\nconst originalArticles = $('Saml alle artikler').first().json.articleText;\nconst date = $('Saml alle artikler').first().json.date;\nconst attempts = 1;\n\nconst retryPrompt = `Dit tidligere nyhedsbrev blev ikke godkendt. \nHer er feedback fra kvalitetskontrolløren:\n\nFaktuel præcision (${feedback.faktuel_præcision.score}/5): ${feedback.faktuel_præcision.forklaring}\nTone (${feedback.tone.score}/5): ${feedback.tone.forklaring}\nFormat (${feedback.format.score}/5): ${feedback.format.forklaring}\n\nLav et forbedret nyhedsbrev der adresserer denne feedback.\n\nDato: ${date}\nArtikler: ${originalArticles}`;\n\nreturn {\n  json: {\n    retryPrompt: retryPrompt,\n    date: date,\n    articleText: originalArticles,\n    attempts: attempts\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        608
+      ],
+      "id": "3ae114fc-c5f0-4755-9773-35bd0f0dfedf",
+      "name": "Forbered retry-prompt"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -656,
+        800
+      ],
+      "id": "d588d585-c9ab-47a0-a154-3a9c6dc5c49e",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "PxuVQEwJfOlSgdpe",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.output;\n\n// Fjern escaped linjeskift og parse JSON\nraw = String(raw).replace(/\\\\n/g, '\\n').trim();\n\n// Fjern markdown code blocks\nraw = raw\n  .replace(/```json\\n/g, '')\n  .replace(/```\\n/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nconst parsed = JSON.parse(raw);\n\n// Beregn total hvis den mangler\nconst total = parsed.total || \n  parsed.faktuel_præcision.score + \n  parsed.tone.score + \n  parsed.format.score;\n\nreturn {\n  json: {\n    faktuel_præcision: parsed.faktuel_præcision,\n    tone: parsed.tone,\n    format: parsed.format,\n    total: total\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        992
+      ],
+      "id": "5880b822-a29e-467d-be7d-1a6ca6fa34f9",
+      "name": "Konverter til JSON-format"
+    },
+    {
+      "parameters": {
+        "sendTo": "sofierytterbroman95@gmail.com",
+        "subject": "Advarsel",
+        "message": "=Total score: {{ $json.output.total }}/15\n\nFaktuel præcision: {{ $json.output.faktuel_præcision.score }}/5\n{{ $json.output.faktuel_præcision.forklaring }}\n\nTone: {{ $json.output.tone.score }}/5\n{{ $json.output.tone.forklaring }}\n\nFormat: {{ $json.output.format.score }}/5\n{{ $json.output.format.forklaring }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        752
+      ],
+      "id": "39e7317d-cf38-4239-b564-c7946082b1f1",
+      "name": "Send advarsel",
+      "webhookId": "224481fb-060f-4011-b4e6-666c1ee0e840",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "992cc020-6ae8-471b-a770-7ef567533121",
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": "=low",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1888,
+        544
+      ],
+      "id": "5abf06fa-d04b-423a-a26d-1104aa94b6ca",
+      "name": "Indeholder artiklen alle felter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.retryPrompt }}\n\nSTRUKTUR:\n1. Header: \"Dagens Sportsnyheder\" + dato\n2. Velkomst (1 sætning)\n3. Per artikel: titel som klikbart link, resumé, kilde og dato\n4. Footer: \"God læselyst!\"\n\nReturner et JSON-objekt for HVER artikel med felterne:\n- titel: artiklens overskrift\n- resume: 2-3 sætninger opsummering\n- kilde: kildens URL\n- confidence: \"high\" hvis beskrivelsen er fyldig, \n              \"medium\" hvis beskrivelsen er kort,\n              \"low\" hvis du kun har en titel at arbejde med",
+        "options": {
+          "systemMessage": "Du er sportsjournalist og HTML-udvikler for et dansk sportsnyhedsbrev.\nDu modtager råartikler og returnerer et færdigt HTML nyhedsbrev.\n\nOPSUMMERINGSREGLER:\n- 2-3 sætninger per artikel, neutral dansk tone\n- Skriv kun hvad kilden angiver – ingen gætterier\n- Start aldrig med \"Artiklen handler om...\"\n\nHTML REGLER:\n- Start med <!DOCTYPE html>\n- Returner KUN ren HTML – ingen markdown, ingen forklaring\n- Max bredde: 600px, centreret, hvid baggrund\n- Overskrifter og links: #C8102E\n- Font: Arial, sans-serif\n- Artikelspacing: 20px margin\n- Kilde og dato: font-size 12px, color #666\n- Mobil-venligt layout\n- Hold HTML'en under 4000 tegn i alt.\n\n- Maksimalt 5 artikler i nyhedsbrevet.\n- Brug minimal CSS – ingen kommentarer, ingen tomme linjer i style-blokken.\n- Du indsætter altid de faktiske værdier direkte i HTML-koden.\n- Du bruger ALDRIG {{ }} variable, pladsholdere eller skabelon-syntax i dit output."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -656,
+        608
+      ],
+      "id": "6a76c4b4-c6d9-4e2f-9a68-9c984211a0cd",
+      "name": "A4: Retry-prompt"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Vælg de bedste artikler (max 5 og minimum 2) fra denne liste.\n\nAntal artikler: {{ $json.count }}\nArtikler: {{ $json.articleList }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Du er redaktør for et dansk sportsnyhedsbrev.\nDin opgave er udelukkende at udvælge artikler – ikke skrive eller opsummere.\n\nPRIORITERING:\n1. Danske atleter og hold\n2. Store internationale begivenheder (OL, VM, EM, CL, Super Bowl)\n3. Overraskende resultater\n4. Milepæle og rekorder\n5. Personhistorier\n\nIGNORER: Ligakampe uden dansk relevans, duplikater, artikler uden indhold.\n\nOUTPUT: Returner kun en JSON-array med de valgte indices. Eksempel: [0, 3, 7, 12]\nIngen forklaring. Ingen tekst. Kun arrayet."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -752,
+        -32
+      ],
+      "id": "42ae1940-10cb-42b6-a8e1-810f17db6d4c",
+      "name": "A1: Find 5 artikler"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d63bd8ff-94bf-4e79-b330-e286b15752f2",
+              "leftValue": "={{ $json.total }}",
+              "rightValue": 8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        608
+      ],
+      "id": "54de5269-a454-4766-8f7a-09785621bc91",
+      "name": "If"
+    }
+  ],
+  "connections": {
+    "Trigger en gang dagligt": {
+      "main": [
+        [
+          {
+            "node": "Angiv version",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "A1: Find 5 artikler",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "A1: Find 5 artikler",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Parser": {
+      "main": [
+        [
+          {
+            "node": "Samler alle artikler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forbered til AI": {
+      "main": [
+        [
+          {
+            "node": "A1: Find 5 artikler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Udtræk valgte artikler": {
+      "main": [
+        [
+          {
+            "node": "Loop over artikler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop over artikler": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Gem artikel + forbered prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Samler alle artikler": {
+      "main": [
+        [
+          {
+            "node": "Forbered til AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Henter nyheder DR sport": {
+      "main": [
+        [
+          {
+            "node": "RSS Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gem artikel + forbered prompt": {
+      "main": [
+        [
+          {
+            "node": "Saml alle artikler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forbered email": {
+      "main": [
+        [
+          {
+            "node": "A3: Kvalitetssikrer nyhedsbrev",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Saml alle artikler": {
+      "main": [
+        [
+          {
+            "node": "A2: Opsummer + nyhedsbrev",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured output parser": {
+      "ai_tool": [
+        [
+          {
+            "node": "A2: Opsummer + nyhedsbrev",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vent på godkendelse": {
+      "main": [
+        [
+          {
+            "node": "Er godkendt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forbered til godkendelse": {
+      "main": [
+        [
+          {
+            "node": "HITL: Send preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Angiv version": {
+      "main": [
+        [
+          {
+            "node": "Henter nyheder DR sport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hent nyhedsbrev": {
+      "main": [
+        [
+          {
+            "node": "Send til 50.000 brugere",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gem afvist nyhedsbrev": {
+      "main": [
+        [
+          {
+            "node": "Notificer om afvisning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HITL: Send preview": {
+      "main": [
+        [
+          {
+            "node": "Vent på godkendelse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "A3: Kvalitetssikrer nyhedsbrev",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A3: Kvalitetssikrer nyhedsbrev": {
+      "main": [
+        [
+          {
+            "node": "Konverter text til JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A2: Opsummer + nyhedsbrev": {
+      "main": [
+        [
+          {
+            "node": "Indeholder artiklen alle felter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konverter text til JSON": {
+      "main": [
+        [
+          {
+            "node": "Er kvalitetsgodkendt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "A2: Opsummer + nyhedsbrev",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Er kvalitetsgodkendt": {
+      "main": [
+        [
+          {
+            "node": "Forbered til godkendelse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Forbered retry-prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Er godkendt": {
+      "main": [
+        [
+          {
+            "node": "Gem godkendt nyhedsbrev i DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gem afvist nyhedsbrev",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gem godkendt nyhedsbrev i DB": {
+      "main": [
+        [
+          {
+            "node": "Hent nyhedsbrev",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forbered retry-prompt": {
+      "main": [
+        [
+          {
+            "node": "A4: Retry-prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "A4: Retry-prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konverter til JSON-format": {
+      "main": [
+        [
+          {
+            "node": "Forbered email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeholder artiklen alle felter": {
+      "main": [
+        [
+          {
+            "node": "Forbered email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A4: Retry-prompt": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A1: Find 5 artikler": {
+      "main": [
+        [
+          {
+            "node": "Udtræk valgte artikler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Konverter til JSON-format",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send advarsel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": {
+    "node:Trigger en gang dagligt": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "18d6d89a-f631-45d9-8a30-5c26e0b8e6db",
+  "activeVersionId": "347de64a-eb87-420a-9a3b-ba09f2c24f72",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-23T10:18:18.978Z",
+      "createdAt": "2026-02-23T10:18:18.978Z",
+      "role": "workflow:owner",
+      "workflowId": "mqk59nXOAMRr5tQr",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-02-24T12:16:14.000Z",
+    "createdAt": "2026-02-24T12:13:02.701Z",
+    "versionId": "347de64a-eb87-420a-9a3b-ba09f2c24f72",
+    "workflowId": "mqk59nXOAMRr5tQr",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "triggerAtHour": 8
+              },
+              {}
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -1904,
+          -32
+        ],
+        "id": "975eb5e3-ecf8-4e5a-85bb-b01f3e6630eb",
+        "name": "Trigger en gang dagligt"
+      },
+      {
+        "parameters": {
+          "schemaType": "manual",
+          "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"selectedIndices\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"integer\"\n      },\n      \"description\": \"Array af artikel indices (0-baseret) som er valgt til nyhedsbrevet\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"Kort forklaring på hvorfor disse artikler blev valgt\"\n    }\n  },\n  \"required\": [\"selectedIndices\"]\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -592,
+          208
+        ],
+        "id": "6e831ce4-6a7c-4cf2-b93d-53545f0c46ce",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent AI output\nconst aiOutput = $json.output || $json;\nconsole.log(\"=== AI OUTPUT ===\");\nconsole.log(\"Selected indices:\", aiOutput.selectedIndices);\nconsole.log(\"Reasoning:\", aiOutput.reasoning);\n\n// Hent selectedIndices\nlet selectedIndices = aiOutput.selectedIndices || [];\n\nif (!Array.isArray(selectedIndices) || selectedIndices.length === 0) {\n  console.log(\"⚠️ Ingen indices fra AI, bruger fallback\");\n  selectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];\n}\n\nconsole.log(`\\n🎯 AI valgte ${selectedIndices.length} artikler:`, selectedIndices);\n\n// Hent artikler fra \"Forbered til AI\" node direkte\nlet allArticles = null;\n\ntry {\n  // Prøv med præcist node navn\n  const prepareNode = $('Forbered til AI');\n  if (prepareNode && prepareNode.first()) {\n    const prepareData = prepareNode.first().json;\n    allArticles = prepareData.articles || prepareData.data;\n    console.log(`✅ Fandt ${allArticles?.length || 0} artikler fra \"Forbered til AI\" node`);\n  }\n} catch (e) {\n  console.log(\"❌ Kunne ikke finde via $() syntax:\", e.message);\n}\n\n// Fallback: Søg i alle nodes\nif (!allArticles) {\n  console.log(\"\\n🔍 Søger i alle tilgængelige nodes...\");\n  const nodeNames = Object.keys($node);\n  console.log(\"Available nodes:\", nodeNames);\n  \n  for (const nodeName of nodeNames) {\n    try {\n      const nodeData = $node[nodeName];\n      if (nodeData && nodeData.json) {\n        if (nodeData.json.articles && Array.isArray(nodeData.json.articles)) {\n          allArticles = nodeData.json.articles;\n          console.log(`✅ Fandt artikler i node: \"${nodeName}\"`);\n          break;\n        } else if (nodeData.json.data && Array.isArray(nodeData.json.data)) {\n          allArticles = nodeData.json.data;\n          console.log(`✅ Fandt artikler i \"${nodeName}\".data`);\n          break;\n        }\n      }\n    } catch (e) {\n      // Skip denne node\n    }\n  }\n}\n\n// Final check\nif (!allArticles || !Array.isArray(allArticles)) {\n  console.log(\"\\n❌ KRITISK FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Kunne ikke finde artikler i nogen nodes\",\n      availableNodes: Object.keys($node),\n      selectedIndices: selectedIndices\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Har ${allArticles.length} artikler tilgængelige`);\n\n// Udtræk de valgte artikler\nconst selectedArticles = selectedIndices\n  .filter(i => {\n    const valid = i >= 0 && i < allArticles.length;\n    if (!valid) {\n      console.log(`⚠️ Invalid index: ${i} (max: ${allArticles.length - 1})`);\n    }\n    return valid;\n  })\n  .map(i => {\n    const article = allArticles[i];\n    console.log(`✓ Index ${i}: ${article.title.substring(0, 50)}...`);\n    return {\n      json: article\n    };\n  });\n\nconsole.log(`\\n✅ Returnerer ${selectedArticles.length} artikler`);\n\nif (selectedArticles.length === 0) {\n  return [{\n    json: {\n      error: \"Ingen gyldige artikler kunne udtrækkes\"\n    }\n  }];\n}\n\nreturn selectedArticles;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -416,
+          -16
+        ],
+        "id": "4fd165d1-9ca6-4f43-a81c-c535ff46f85e",
+        "name": "Udtræk valgte artikler"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "builtInTools": {},
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -736,
+          208
+        ],
+        "id": "2f511ecb-5194-44b1-b5ae-2b6a64935b9e",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  let xmlData = item.json.data || item.json.body || item.json;\n  \n  if (typeof xmlData === 'object' && xmlData !== null) {\n    xmlData = JSON.stringify(xmlData);\n  }\n  \n  if (!xmlData || typeof xmlData !== 'string') {\n    console.log(\"Kunne ikke finde XML data\");\n    continue;\n  }\n  \n  const cleanCDATA = (text) => {\n    if (!text) return '';\n    return text.replace(/<!\\[CDATA\\[(.*?)\\]\\]>/gs, '$1').trim();\n  };\n  \n  const stripHTML = (html) => {\n    if (!html) return '';\n    return html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  };\n  \n  const extractTag = (xml, tag) => {\n    const regex = new RegExp(`<${tag}[^>]*>([\\\\s\\\\S]*?)<\\\\/${tag}>`, 'i');  // FIX: ( ) ikke ` `\n    const match = xml.match(regex);\n    return match ? cleanCDATA(match[1]) : '';\n  };\n  \n  const feedTitle = extractTag(xmlData, 'title') || 'DR Sport';\n  \n  const itemRegex = /<item[^>]*>([\\s\\S]*?)<\\/item>/gi;\n  const itemMatches = [];\n  let match;\n  \n  while ((match = itemRegex.exec(xmlData)) !== null) {\n    itemMatches.push(match[1]);\n  }\n  \n  console.log(`Fandt ${itemMatches.length} artikler i feedet`);  // FIX: ( ) ikke ` `\n  \n  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);\n  \n  for (const itemXml of itemMatches) {\n    const title = extractTag(itemXml, 'title');\n    const link = extractTag(itemXml, 'link');\n    const description = extractTag(itemXml, 'description');\n    const content = extractTag(itemXml, 'content:encoded') || extractTag(itemXml, 'encoded');\n    const pubDateStr = extractTag(itemXml, 'pubDate') || extractTag(itemXml, 'dc:date');\n    \n    let pubDate = new Date();\n    if (pubDateStr) {\n      pubDate = new Date(pubDateStr);\n      if (isNaN(pubDate.getTime())) {\n        pubDate = new Date();\n      }\n    }\n    \n    if (pubDate > cutoff) {\n      const summary = content || description || '';  // FIX: Sikr tom string hvis begge mangler\n      \n      items.push({\n        json: {\n          title: stripHTML(title) || 'Ingen titel',\n          link: link || '',\n          summary: stripHTML(summary).substring(0, 500),\n          published: pubDateStr || pubDate.toISOString(),\n          source: feedTitle,\n          publishedDate: pubDate.toISOString()\n        }\n      });\n    }\n  }\n}\n\nconsole.log(`Returnerer ${items.length} artikler fra sidste 48 timer`);  // FIX: ( ) ikke ` `\n\nif (items.length === 0) {\n  console.log(\"ADVARSEL: Ingen artikler fundet.\");\n  return [{\n    json: {\n      message: \"Ingen nye artikler\",\n      articles: []\n    }\n  }];\n}\n\nreturn items;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1296,
+          -16
+        ],
+        "id": "4a81753d-b4c9-4ed9-8da7-6b96757464d9",
+        "name": "RSS Parser",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent input\nconst firstInput = $input.first().json;\n\nconsole.log(\"=== INPUT CHECK ===\");\nconsole.log(\"Input keys:\", Object.keys(firstInput));\n\n// Artiklerne ligger i 'data' array fra Aggregate\nlet allArticles = [];\n\nif (firstInput.data && Array.isArray(firstInput.data)) {\n  allArticles = firstInput.data;\n  console.log(`✅ Fandt ${allArticles.length} artikler i data array`);\n} else if (Array.isArray($input.all())) {\n  allArticles = $input.all().map(item => item.json);\n  console.log(`✅ Fandt ${allArticles.length} artikler fra input.all()`);\n}\n\nif (allArticles.length === 0) {\n  console.log(\"❌ FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Ingen artikler\",\n      articleList: \"\",\n      articles: [],\n      count: 0\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Processerer ${allArticles.length} artikler`);\nconsole.log(\"Første artikel:\", allArticles[0].title);\n\n// Lav artikel liste\nconst articleList = allArticles.map((article, index) => {\n  const title = article.title || 'Ingen titel';\n  const source = article.source || 'Ukendt kilde';\n  const published = article.published || 'Ukendt dato';\n  const summary = article.summary || '';\n  \n  const shortSummary = summary.length > 200 \n    ? summary.substring(0, 200) + '...' \n    : summary;\n  \n  return `${index}. ${title}\\n   Kilde: ${source}\\n   Dato: ${published}\\n   Sammendrag: ${shortSummary}`;\n}).join('\\n\\n');\n\nconsole.log(\"\\n✅ SUCCESS!\");\nconsole.log(`Artikel liste oprettet (${articleList.length} chars)`);\nconsole.log(\"Preview:\", articleList.substring(0, 200));\n\nreturn [{\n  json: {\n    articleList: articleList,\n    articles: allArticles,    // ← NU sender vi array, ikke 0!\n    count: allArticles.length\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -928,
+          -16
+        ],
+        "id": "8ddeb3bc-14ce-47a0-93ab-b45bb5780fde",
+        "name": "Forbered til AI"
+      },
+      {
+        "parameters": {
+          "content": "[Udtræk valgte artikler]\n    ↓\nAI Agent 2: Opsummer hver artikel (Loop)\n    ↓\nAggregate (saml opsummeringer)\n    ↓\nForbered newsletter data\n    ↓\nAI Agent 3: Generer HTML newsletter\n    ↓\nGmail: Send email ",
+          "height": 240,
+          "width": 304
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -448,
+          -400
+        ],
+        "id": "92aa6150-b01c-4d76-ac34-19175411d84c",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "options": {
+            "reset": false
+          }
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          -208,
+          -16
+        ],
+        "id": "c4c973d2-576c-4bf8-ab90-d86903394e9a",
+        "name": "Loop over artikler"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "builtInTools": {},
+          "options": {
+            "maxTokens": 1000,
+            "temperature": 0.3
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -1280,
+          480
+        ],
+        "id": "5eae2442-9810-4194-843a-3741a57976f7",
+        "name": "OpenAI Chat Model1",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -1120,
+          -16
+        ],
+        "id": "0030225f-969c-4352-9887-42ab9e08a256",
+        "name": "Samler alle artikler"
+      },
+      {
+        "parameters": {
+          "url": "https://www.dr.dk/nyheder/service/feeds/sporten",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1488,
+          -32
+        ],
+        "id": "143b79f1-056c-4599-9567-0314a5eb9feb",
+        "name": "Henter nyheder DR sport"
+      },
+      {
+        "parameters": {
+          "jsCode": "const article = $json;\n\nconst beskrivelse = article.summary || 'Ingen beskrivelse';\n\nreturn {\n  json: {\n    formatted: `Titel: ${article.title || 'Ingen titel'}\nKilde: ${article.source || 'Ukendt'}\nDato: ${article.publishedDate || article.published || 'Ukendt'}\nURL: ${article.link || ''}\nBeskrivelse: ${beskrivelse}`\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1696,
+          368
+        ],
+        "id": "7a8b6ff6-8e3b-4514-8aec-9edb6b7d63bd",
+        "name": "Gem artikel + forbered prompt"
+      },
+      {
+        "parameters": {
+          "jsCode": "let html = $json.output;\n\nhtml = String(html).replace(/\\\\n/g, '\\n').trim();\n\nconst today = new Date();\nconst subject = `📰 Dagens Sportsnyheder - ${today.toLocaleDateString('da-DK')}`;\n\nreturn {\n  json: {\n    html: html,\n    subject: subject\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -752,
+          400
+        ],
+        "id": "ba6126a6-f227-4458-8345-9ff6f1c7c13a",
+        "name": "Forbered email"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Vælg de bedste artikler (max 5 og minimum 2) fra denne liste.\n\nAntal artikler: {{ $json.count }}\nArtikler: {{ $json.articleList }}",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Du er redaktør for et dansk sportsnyhedsbrev.\nDin opgave er udelukkende at udvælge artikler – ikke skrive eller opsummere.\n\nPRIORITERING:\n1. Danske atleter og hold\n2. Store internationale begivenheder (OL, VM, EM, CL, Super Bowl)\n3. Overraskende resultater\n4. Milepæle og rekorder\n5. Personhistorier\n\nIGNORER: Ligakampe uden dansk relevans, duplikater, artikler uden indhold.\n\nOUTPUT: Returner kun en JSON-array med de valgte indices. Eksempel: [0, 3, 7, 12]\nIngen forklaring. Ingen tekst. Kun arrayet."
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -736,
+          -16
+        ],
+        "id": "42ae1940-10cb-42b6-a8e1-810f17db6d4c",
+        "name": "Find 10 artikler"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "c782db35-5f48-49cb-8d13-26c7c7f6c8e5",
+                "name": "prompt_version",
+                "value": "summarizer_v2.0",
+                "type": "string"
+              },
+              {
+                "id": "0cb259d0-f220-4edd-8464-401da1c7998d",
+                "name": "=dato",
+                "value": "={{$now.toISO()}}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1744,
+          -32
+        ],
+        "id": "8e5b6d28-f5df-4c51-b304-4681be041423",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Lav et færdigt HTML nyhedsbrev baseret på disse artikler.\nIndsæt al tekst direkte i HTML'en – brug IKKE variable eller pladsholdere.\n\nDato: {{ $json.date }}\nArtikler:\n{{ $json.articleText }}\n\nSTRUKTUR:\n1. Header: \"Dagens Sportsnyheder\" + dato\n2. Velkomst (1 sætning)\n3. Per artikel: titel som klikbart link, resumé, kilde og dato\n4. Footer: \"God læselyst!\"\n\nReturner et JSON-objekt for HVER artikel med felterne:\n- titel: artiklens overskrift\n- resume: 2-3 sætninger opsummering\n- kilde: kildens URL\n- confidence: \"high\" hvis beskrivelsen er fyldig, \n              \"medium\" hvis beskrivelsen er kort,\n              \"low\" hvis du kun har en titel at arbejde med",
+          "options": {
+            "systemMessage": "Du er sportsjournalist og HTML-udvikler for et dansk sportsnyhedsbrev.\nDu modtager råartikler og returnerer et færdigt HTML nyhedsbrev.\n\nOPSUMMERINGSREGLER:\n- 2-3 sætninger per artikel, neutral dansk tone\n- Skriv kun hvad kilden angiver – ingen gætterier\n- Start aldrig med \"Artiklen handler om...\"\n\nHTML REGLER:\n- Start med <!DOCTYPE html>\n- Returner KUN ren HTML – ingen markdown, ingen forklaring\n- Max bredde: 600px, centreret, hvid baggrund\n- Overskrifter og links: #C8102E\n- Font: Arial, sans-serif\n- Artikelspacing: 20px margin\n- Kilde og dato: font-size 12px, color #666\n- Mobil-venligt layout\n- Hold HTML'en under 4000 tegn i alt.\n\n- Maksimalt 5 artikler i nyhedsbrevet.\n- Brug minimal CSS – ingen kommentarer, ingen tomme linjer i style-blokken.\n- Du indsætter altid de faktiske værdier direkte i HTML-koden.\n- Du bruger ALDRIG {{ }} variable, pladsholdere eller skabelon-syntax i dit output."
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -1280,
+          352
+        ],
+        "id": "006776ef-a4a1-412e-92c6-70bb295fc76a",
+        "name": "A2: Opsummer + newsletter"
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = $input.all();\n\nconst articleText = items.map((item, i) => \n  `### Artikel ${i+1}\\n${item.json.formatted}`\n).join(\"\\n\\n---\\n\\n\");\n\nconst date = new Date().toLocaleDateString('da-DK', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nreturn [{ json: { articleText, date } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1456,
+          368
+        ],
+        "id": "8a53fe0c-5af3-4a74-abdf-99dd6b31afc7",
+        "name": "Saml alle artikler"
+      },
+      {
+        "parameters": {
+          "jsCode": "{\n  \"titel\": \"string\",\n  \"resume\": \"string\",\n  \"kilde\": \"string\",\n  \"confidence\": \"string\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolCode",
+        "typeVersion": 1.3,
+        "position": [
+          -1136,
+          560
+        ],
+        "id": "84c09450-685a-4bd2-bd7b-3d541d0d7efc",
+        "name": "Structured output parser"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "992cc020-6ae8-471b-a770-7ef567533121",
+                "leftValue": "={{ $json.confidence }}",
+                "rightValue": "=\"low\"",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEquals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -944,
+          384
+        ],
+        "id": "5abf06fa-d04b-423a-a26d-1104aa94b6ca",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "sendTo": "sofierytterbroman95@gmail.com",
+          "subject": "Advarsel",
+          "message": "=Artikel med lav confidence blev stoppet: Titel: {{ $json.titel }} Kilde: {{ $json.kilde }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          -832,
+          640
+        ],
+        "id": "dfc3dff6-e2f7-4f04-8f94-0ec5071e212c",
+        "name": "Send e-mail",
+        "webhookId": "20ae520f-9272-4323-9b14-9dbe2971ab96",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dDCsg9Ju4teozM0v",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "0723330c-9932-4a1d-ba95-9aefca995425",
+                "leftValue": "={{ $json.query.godkend }}",
+                "rightValue": "\"ja\"",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          128,
+          352
+        ],
+        "id": "0c9c8396-dda7-4c80-9c40-b3635f2173c0",
+        "name": "Godkendt newsletter"
+      },
+      {
+        "parameters": {
+          "resume": "webhook",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.wait",
+        "typeVersion": 1.1,
+        "position": [
+          -80,
+          352
+        ],
+        "id": "a7094e82-5dde-444e-83fd-f7eb7497f10e",
+        "name": "Vent på godkendelse",
+        "webhookId": "cb5cee82-6abf-4e56-8ec5-6d0b94573fa1"
+      },
+      {
+        "parameters": {
+          "resource": "message",
+          "guildId": {
+            "__rl": true,
+            "value": "1475818715726610444",
+            "mode": "list",
+            "cachedResultName": "Sofie Rytters server",
+            "cachedResultUrl": "https://discord.com/channels/1475818715726610444"
+          },
+          "channelId": {
+            "__rl": true,
+            "value": "1475818716531785832",
+            "mode": "list",
+            "cachedResultName": "generel",
+            "cachedResultUrl": "https://discord.com/channels/1475818715726610444/1475818716531785832"
+          },
+          "content": "Workflow afvist af Human-in-the-lopp",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.discord",
+        "typeVersion": 2,
+        "position": [
+          336,
+          448
+        ],
+        "id": "c527bc54-9355-4b8d-b42b-74a195ac9383",
+        "name": "Send a message",
+        "webhookId": "37d8ec93-2bb1-4232-8c58-76b4ed749d99",
+        "credentials": {
+          "discordBotApi": {
+            "id": "MC43KuFzgkNo6OgT",
+            "name": "Discord Bot account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "sofierytterbroman95@gmail.com",
+          "subject": "Sportsletter",
+          "message": "={{ $json.html }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          336,
+          256
+        ],
+        "id": "8b17db10-fc4a-4cc5-9efa-2d9042f527be",
+        "name": "Send a message1",
+        "webhookId": "78ab6966-0c86-430d-8d2c-492fd1930cbe",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dDCsg9Ju4teozM0v",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const webhookUrl = $execution.resumeUrl;\n\nconst godkendUrl = `${webhookUrl}?godkend=ja`;\nconst afvisUrl = `${webhookUrl}?godkend=nej`;\n\nconst previewHtml = `\n<h2>Godkend nyhedsbrev før afsendelse</h2>\n<p>${$json.subject}</p>\n<hr>\n${$json.html}\n<hr>\n<p>\n  <a href=\"${godkendUrl}\" style=\"background:#28a745;color:white;padding:10px 20px;text-decoration:none;margin-right:10px\">\n    ✅ GODKEND\n  </a>\n  <a href=\"${afvisUrl}\" style=\"background:#dc3545;color:white;padding:10px 20px;text-decoration:none\">\n    ❌ AFVIS\n  </a>\n</p>\n`;\n\nreturn {\n  json: {\n    previewHtml: previewHtml,\n    subject: $json.subject,\n    html: $json.html\n  }\n};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -592,
+          416
+        ],
+        "id": "f6bcefb6-129f-4115-ac36-d9f26321fdb3",
+        "name": "Forbered til godkendelse"
+      },
+      {
+        "parameters": {
+          "sendTo": "sofierytterbroman95@gmail.com",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.previewHtml }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          -352,
+          416
+        ],
+        "id": "b96578ab-6aa6-48c4-9a33-de013171de1b",
+        "name": "Send preview",
+        "webhookId": "692a83ec-66b0-45e1-b44f-67cfe130c909",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dDCsg9Ju4teozM0v",
+            "name": "Gmail account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Trigger en gang dagligt": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "Find 10 artikler",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "Find 10 artikler",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS Parser": {
+        "main": [
+          [
+            {
+              "node": "Samler alle artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered til AI": {
+        "main": [
+          [
+            {
+              "node": "Find 10 artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Udtræk valgte artikler": {
+        "main": [
+          [
+            {
+              "node": "Loop over artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop over artikler": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Gem artikel + forbered prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "A2: Opsummer + newsletter",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Samler alle artikler": {
+        "main": [
+          [
+            {
+              "node": "Forbered til AI",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Henter nyheder DR sport": {
+        "main": [
+          [
+            {
+              "node": "RSS Parser",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gem artikel + forbered prompt": {
+        "main": [
+          [
+            {
+              "node": "Saml alle artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered email": {
+        "main": [
+          [
+            {
+              "node": "Forbered til godkendelse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Find 10 artikler": {
+        "main": [
+          [
+            {
+              "node": "Udtræk valgte artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Henter nyheder DR sport",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "A2: Opsummer + newsletter": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Saml alle artikler": {
+        "main": [
+          [
+            {
+              "node": "A2: Opsummer + newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured output parser": {
+        "ai_tool": [
+          [
+            {
+              "node": "A2: Opsummer + newsletter",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Forbered email",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send e-mail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Vent på godkendelse": {
+        "main": [
+          [
+            {
+              "node": "Godkendt newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Godkendt newsletter": {
+        "main": [
+          [
+            {
+              "node": "Send a message1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered til godkendelse": {
+        "main": [
+          [
+            {
+              "node": "Send preview",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send preview": {
+        "main": [
+          [
+            {
+              "node": "Vent på godkendelse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Sofie  Broman",
+    "name": "Version 2.0",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
