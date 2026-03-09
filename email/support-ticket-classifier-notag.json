@@ -1,0 +1,549 @@
+{
+  "updatedAt": "2026-02-09T15:52:42.537Z",
+  "createdAt": "2026-02-09T07:51:11.710Z",
+  "id": "hNqdgFC8ipVfSwJHczA2c",
+  "name": "Email/Support Ticket Classifier",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        -32
+      ],
+      "id": "3a8ab9ac-8723-4fd3-8d3b-c9e7d2ab7a24",
+      "name": "When e-mail is received",
+      "credentials": {
+        "imap": {
+          "id": "OjDVbGyCcWpYmXw8",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        176
+      ],
+      "id": "bfc80922-25e2-4541-bae9-a79d59929f7e",
+      "name": "Ollama classifies e-mails",
+      "credentials": {
+        "ollamaApi": {
+          "id": "c97AT1tS9BPJfAfB",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.from.text }}{{ $('When e-mail is received').item.json.subject }}",
+        "options": {
+          "systemMessage": "You are an email classifier. Read the email and classify it into EXACTLY ONE category.\n\nCATEGORY DEFINITIONS:\n\nTechnical Support:\n- Problems with software/tools not working\n- Error messages or bugs\n- \"How do I...\" questions about using features\n- Troubleshooting requests\n- Examples: \"My workflow is broken\", \"I'm getting an error\", \"How do I configure X?\"\n\nSales Inquiry:\n- Questions about products or services offered\n- Interest in purchasing or partnerships\n- Requests for demos or information\n- Examples: \"What products do you sell?\", \"I'm interested in your services\", \"Can we schedule a demo?\"\n\nBilling Question:\n- Invoices, payments, subscriptions\n- Charges, refunds, receipts\n- Pricing for existing customers\n- Examples: \"When will I be charged?\", \"I need my invoice\", \"Question about my subscription payment\"\n\nSpam:\n- Unsolicited advertisements\n- Suspicious or promotional emails\n- Examples: \"BUY NOW!\", \"Limited offer\", \"Click here to win\"\n\nINSTRUCTIONS:\n1. Read the subject and body\n2. Determine which category fits best\n3. Respond with ONLY the category name (nothing else)\n4. If payment/invoice/subscription is mentioned → Billing Question\n5. If error/broken/help with tool → Technical Support\n\nEmail Subject: {{ $('When e-mail is received').item.json.subject }}\nEmail Body: {{ $('When e-mail is received').item.json.text }}\n\nCategory (one word):"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -368,
+        -32
+      ],
+      "id": "e5d4d1a0-2f85-4fc4-8c40-2509e285b9dc",
+      "name": "AI Agent provides System Message"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "simple": false,
+        "filters": {
+          "q": "={{ $json.from }}{{ $json.subject }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        -32
+      ],
+      "id": "894dcc1f-046c-409e-a1ce-eaf6b1c1907a",
+      "name": "Get e-mails",
+      "webhookId": "1ceafc69-48c9-4722-98d7-259b17ca5ac3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Henter AI-agentens output\nconst aiOutput = $input.item.json.output;\n\n// Finder kategorien i teksten\nlet category = \"Unclassified\";\n\nif (aiOutput.includes(\"Technical Support\")) {\n  category = \"Technical Support\";\n} else if (aiOutput.includes(\"Sales Inquiry\")) {\n  category = \"Sales Inquiry\";\n} else if (aiOutput.includes(\"Billing Question\")) {\n  category = \"Billing Question\";\n} else if (aiOutput.includes(\"Spam\")) {\n  category = \"Spam\";\n}\n\n// Returnerer kategorien\nreturn {\n  json: {\n    category: category,\n    originalEmail: $input.item.json,\n    aiResponse: aiOutput\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "93f1aa21-8d23-4c78-8f3f-10995f2beeb4",
+      "name": "Categorises classifications"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Technical Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7b5fdb9a-ad7e-4108-be15-cd8884e024da"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "407d3959-93c8-4838-be1e-134b54e021a3",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Sales Inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2eb58073-7934-4338-99b9-9c3207b7a392",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Billing Question",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6ff290b6-c8e0-4a1d-a4e1-c1ca787dfa08",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "Spam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        -64
+      ],
+      "id": "e9d748bb-0d55-4f5d-a116-c1be1bd0f62b",
+      "name": "Switches between classifications"
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        -304
+      ],
+      "id": "335fd327-f221-4964-a89e-bc2fdb692ac0",
+      "name": "Get label for Technical Support",
+      "webhookId": "0ccbc67a-0f95-4d69-b52f-5e8033f7cb1a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        -112
+      ],
+      "id": "85c894c0-9095-4ea3-9411-a9a01c629663",
+      "name": "Get label for Sales Inquiry",
+      "webhookId": "a7468622-f35d-48a0-9237-ffb10d05806e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "=19c42f9c5deb7a51",
+        "labelIds": [
+          "Label_7281882424156578378"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        -304
+      ],
+      "id": "79b55b8b-3663-4d8b-a52a-5ba2b2712b92",
+      "name": "Add Technical Support label to e-mail",
+      "webhookId": "cb5d9635-e7f8-48b4-b726-c9fcacbc1e29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "19c41e893554ed51",
+        "labelIds": [
+          "Label_401585053716384653"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        -112
+      ],
+      "id": "aaa10e70-18dc-41fa-9111-cceab19ed514",
+      "name": "Add Sales Inquiry label to e-mail",
+      "webhookId": "fce0aaab-09a9-430a-8d2f-d9562613153c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        80
+      ],
+      "id": "6fbd228a-a887-48b0-ac92-d903103201d7",
+      "name": "Get label for Billing Question",
+      "webhookId": "20800663-d4dd-4c5b-a198-0958205b9223",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "19c42f9c5deb7a51",
+        "labelIds": [
+          "Label_6551756086411375490"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        80
+      ],
+      "id": "ed9f7a77-63e5-4a33-b1d6-6e3e2a4a95af",
+      "name": "Add label Billing Question to e-mail",
+      "webhookId": "4eb5d9c3-3f7c-4430-89f8-63ac8cf55b52",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        272
+      ],
+      "id": "d8b07ece-69c7-4a50-b214-72a5fe01ade0",
+      "name": "Get label for Spam",
+      "webhookId": "70425a85-e5cb-4b7e-a39b-927ddefdaeb0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "19c42f9c5deb7a51",
+        "labelIds": [
+          "SPAM"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        272
+      ],
+      "id": "a09233ae-5b74-4c38-89e4-833cd38e3dde",
+      "name": "Add label Spam to e-mail",
+      "webhookId": "34a8836d-ccd4-4807-aef3-d2897174eb56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "dDCsg9Ju4teozM0v",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When e-mail is received": {
+      "main": [
+        [
+          {
+            "node": "Get e-mails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama classifies e-mails": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent provides System Message",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent provides System Message": {
+      "main": [
+        [
+          {
+            "node": "Categorises classifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get e-mails": {
+      "main": [
+        [
+          {
+            "node": "AI Agent provides System Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Categorises classifications": {
+      "main": [
+        [
+          {
+            "node": "Switches between classifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switches between classifications": {
+      "main": [
+        [
+          {
+            "node": "Get label for Technical Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get label for Sales Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get label for Billing Question",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get label for Spam",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get label for Technical Support": {
+      "main": [
+        [
+          {
+            "node": "Add Technical Support label to e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get label for Sales Inquiry": {
+      "main": [
+        [
+          {
+            "node": "Add Sales Inquiry label to e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get label for Billing Question": {
+      "main": [
+        [
+          {
+            "node": "Add label Billing Question to e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get label for Spam": {
+      "main": [
+        [
+          {
+            "node": "Add label Spam to e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "0668b80e-878a-4989-aab5-dc52f525ce50",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-09T07:51:11.715Z",
+      "createdAt": "2026-02-09T07:51:11.715Z",
+      "role": "workflow:owner",
+      "workflowId": "hNqdgFC8ipVfSwJHczA2c",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
