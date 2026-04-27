@@ -1,9 +1,9 @@
 {
-  "updatedAt": "2026-02-23T09:23:45.879Z",
+  "updatedAt": "2026-04-13T17:47:28.535Z",
   "createdAt": "2026-02-09T16:19:03.901Z",
   "id": "HjrySBnE91oVVnHcBz2lH",
   "name": "Sportsletter",
-  "active": false,
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
@@ -18,31 +18,11 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -736,
+        -528,
         -16
       ],
       "id": "0a9b4791-2b7d-4078-b80b-9ec42087fa15",
       "name": "AI Agent"
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "triggerAtHour": 8
-            },
-            {}
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.3,
-      "position": [
-        -1680,
-        -16
-      ],
-      "id": "0a44a48a-fe35-427b-8eb5-95f903a056d8",
-      "name": "Trigger en gang dagligt"
     },
     {
       "parameters": {
@@ -52,7 +32,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        -592,
+        -384,
         208
       ],
       "id": "68440df7-4131-4ca9-be64-bf85466e5a62",
@@ -65,7 +45,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -416,
+        -208,
         -16
       ],
       "id": "f5e02984-1b81-4f94-a84d-6b41ab9841ab",
@@ -84,7 +64,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        -736,
+        -528,
         208
       ],
       "id": "b7868959-92b9-41c8-a58f-c9d39e050cbb",
@@ -103,7 +83,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1296,
+        -1088,
         -16
       ],
       "id": "44bf1c29-376b-4ff1-b668-01564d9ec7df",
@@ -117,7 +97,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -928,
+        -720,
         -16
       ],
       "id": "e5c8acb1-4a38-4d88-9083-f2941d3cf329",
@@ -147,7 +127,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -208,
+        0,
         -16
       ],
       "id": "586a301f-c21e-4c38-8903-c9a1baddac9b",
@@ -169,7 +149,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        -1504,
+        -1296,
         576
       ],
       "id": "8d3da086-94eb-49de-9e3e-b4d6a89a3a39",
@@ -192,7 +172,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1504,
+        -1296,
         368
       ],
       "id": "d86b6c02-e5d0-4411-9cf8-d86129a11cc8",
@@ -205,7 +185,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1152,
+        -944,
         368
       ],
       "id": "6aee163b-13b5-42f9-8a77-8641ca7353a2",
@@ -219,7 +199,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1120,
+        -912,
         -16
       ],
       "id": "7ab409f2-aa9e-48db-955d-dee380d204d4",
@@ -233,7 +213,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -1488,
+        -1280,
         -16
       ],
       "id": "85e0194b-5929-47be-a381-6b8414de9041",
@@ -250,7 +230,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -480,
+        -272,
         368
       ],
       "id": "5507bbe1-6453-421a-a9bb-692d1925f028",
@@ -272,7 +252,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        -480,
+        -272,
         576
       ],
       "id": "2d4b384d-41fb-4573-a343-3b8955c7a879",
@@ -291,7 +271,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1696,
+        -1488,
         368
       ],
       "id": "8b775880-7b10-4b58-9d93-ed372579049a",
@@ -305,7 +285,7 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -1344,
+        -1136,
         576
       ],
       "id": "904cb471-eb05-4e91-9b3c-62d625556680",
@@ -318,7 +298,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -704,
+        -496,
         368
       ],
       "id": "ebf3bd10-9fa8-4e6d-bc5e-d2777035f29d",
@@ -332,7 +312,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -928,
+        -720,
         368
       ],
       "id": "715aba41-b2f9-407e-9460-186c35f356fc",
@@ -345,7 +325,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -144,
+        64,
         368
       ],
       "id": "2179217d-e998-4cae-b30a-2835fec9bb69",
@@ -361,7 +341,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        80,
+        288,
         368
       ],
       "id": "17759c4e-7530-4598-9ce1-d73ead15f575",
@@ -373,20 +353,35 @@
           "name": "Gmail account"
         }
       }
+    },
+    {
+      "parameters": {
+        "path": "sportsletter",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1680,
+        -160
+      ],
+      "id": "b8b2959e-660b-4aa1-b38f-c208b96cd3f5",
+      "name": "Webhook",
+      "webhookId": "830a7e69-806f-4817-bfe0-6131faad4013"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        -16
+      ],
+      "id": "f53be4b5-b8c5-4287-b41c-fdaba256ca74",
+      "name": "When clicking ‘Execute workflow’"
     }
   ],
   "connections": {
-    "Trigger en gang dagligt": {
-      "main": [
-        [
-          {
-            "node": "Henter nyheder DR sport",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Structured Output Parser": {
       "ai_outputParser": [
         [
@@ -596,20 +591,44 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Henter nyheder DR sport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Henter nyheder DR sport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": false
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
   },
   "staticData": null,
   "meta": {
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "65abbcae-3d1a-4758-b759-ab6078830c88",
-  "activeVersionId": null,
-  "triggerCount": 0,
+  "versionId": "b1d7bbad-b803-49fa-be83-3120134c4535",
+  "activeVersionId": "b1d7bbad-b803-49fa-be83-3120134c4535",
+  "triggerCount": 1,
   "shared": [
     {
       "updatedAt": "2026-02-09T16:19:03.904Z",
@@ -619,6 +638,625 @@
       "projectId": "yBptm4mfF88EIOKa"
     }
   ],
-  "activeVersion": null,
+  "activeVersion": {
+    "updatedAt": "2026-04-13T17:48:00.000Z",
+    "createdAt": "2026-04-13T17:47:28.537Z",
+    "versionId": "b1d7bbad-b803-49fa-be83-3120134c4535",
+    "workflowId": "HjrySBnE91oVVnHcBz2lH",
+    "nodes": [
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Gennemgå disse {{ $json.count }} artikler og vælg de 10 mest interessante til et sports-nyhedsbrev.\n\nArtikler:\n{{ $json.articleList }}\n\nUDVÆLGELSESKRITERIER (i prioriteret rækkefølge):\n1. Danske atleter og hold (højeste prioritet)\n2. Store internationale begivenheder (OL, VM, EM, Champions League, Super Bowl)\n3. Overraskende resultater eller historier\n4. Vigtige kampe og konkurrencer\n5. Sportslige milepæle og rekorder\n6. Interessante personhistorier fra sportsverdenen\n\nIGNORER:\n- Almindelige ligakampe uden dansk deltagelse\n- Gentagelser af samme begivenhed\n- Artikler uden konkret indhold (tomme sammendrag)\n\nRETURFORMAT:\nReturner kun indices (tal fra 0 til {{ $json.count - 1 }}) af de valgte artikler.\n\nVælg op til 10 artikler. Hvis der er færre end 10 gode artikler, vælg bare dem der er værd at inkludere.",
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=Du er en sports-ekspert der kuraterer danske sportsnyheder. Du vælger de mest interessante artikler til et dagligt nyhedsbrev om dansk og international sport."
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -528,
+          -16
+        ],
+        "id": "0a9b4791-2b7d-4078-b80b-9ec42087fa15",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "schemaType": "manual",
+          "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"selectedIndices\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"integer\"\n      },\n      \"description\": \"Array af artikel indices (0-baseret) som er valgt til nyhedsbrevet\"\n    },\n    \"reasoning\": {\n      \"type\": \"string\",\n      \"description\": \"Kort forklaring på hvorfor disse artikler blev valgt\"\n    }\n  },\n  \"required\": [\"selectedIndices\"]\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -384,
+          208
+        ],
+        "id": "68440df7-4131-4ca9-be64-bf85466e5a62",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent AI output\nconst aiOutput = $json.output || $json;\nconsole.log(\"=== AI OUTPUT ===\");\nconsole.log(\"Selected indices:\", aiOutput.selectedIndices);\nconsole.log(\"Reasoning:\", aiOutput.reasoning);\n\n// Hent selectedIndices\nlet selectedIndices = aiOutput.selectedIndices || [];\n\nif (!Array.isArray(selectedIndices) || selectedIndices.length === 0) {\n  console.log(\"⚠️ Ingen indices fra AI, bruger fallback\");\n  selectedIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];\n}\n\nconsole.log(`\\n🎯 AI valgte ${selectedIndices.length} artikler:`, selectedIndices);\n\n// Hent artikler fra \"Forbered til AI\" node direkte\nlet allArticles = null;\n\ntry {\n  // Prøv med præcist node navn\n  const prepareNode = $('Forbered til AI');\n  if (prepareNode && prepareNode.first()) {\n    const prepareData = prepareNode.first().json;\n    allArticles = prepareData.articles || prepareData.data;\n    console.log(`✅ Fandt ${allArticles?.length || 0} artikler fra \"Forbered til AI\" node`);\n  }\n} catch (e) {\n  console.log(\"❌ Kunne ikke finde via $() syntax:\", e.message);\n}\n\n// Fallback: Søg i alle nodes\nif (!allArticles) {\n  console.log(\"\\n🔍 Søger i alle tilgængelige nodes...\");\n  const nodeNames = Object.keys($node);\n  console.log(\"Available nodes:\", nodeNames);\n  \n  for (const nodeName of nodeNames) {\n    try {\n      const nodeData = $node[nodeName];\n      if (nodeData && nodeData.json) {\n        if (nodeData.json.articles && Array.isArray(nodeData.json.articles)) {\n          allArticles = nodeData.json.articles;\n          console.log(`✅ Fandt artikler i node: \"${nodeName}\"`);\n          break;\n        } else if (nodeData.json.data && Array.isArray(nodeData.json.data)) {\n          allArticles = nodeData.json.data;\n          console.log(`✅ Fandt artikler i \"${nodeName}\".data`);\n          break;\n        }\n      }\n    } catch (e) {\n      // Skip denne node\n    }\n  }\n}\n\n// Final check\nif (!allArticles || !Array.isArray(allArticles)) {\n  console.log(\"\\n❌ KRITISK FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Kunne ikke finde artikler i nogen nodes\",\n      availableNodes: Object.keys($node),\n      selectedIndices: selectedIndices\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Har ${allArticles.length} artikler tilgængelige`);\n\n// Udtræk de valgte artikler\nconst selectedArticles = selectedIndices\n  .filter(i => {\n    const valid = i >= 0 && i < allArticles.length;\n    if (!valid) {\n      console.log(`⚠️ Invalid index: ${i} (max: ${allArticles.length - 1})`);\n    }\n    return valid;\n  })\n  .map(i => {\n    const article = allArticles[i];\n    console.log(`✓ Index ${i}: ${article.title.substring(0, 50)}...`);\n    return {\n      json: article\n    };\n  });\n\nconsole.log(`\\n✅ Returnerer ${selectedArticles.length} artikler`);\n\nif (selectedArticles.length === 0) {\n  return [{\n    json: {\n      error: \"Ingen gyldige artikler kunne udtrækkes\"\n    }\n  }];\n}\n\nreturn selectedArticles;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -208,
+          -16
+        ],
+        "id": "f5e02984-1b81-4f94-a84d-6b41ab9841ab",
+        "name": "Udtræk valgte artikler"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "builtInTools": {},
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -528,
+          208
+        ],
+        "id": "b7868959-92b9-41c8-a58f-c9d39e050cbb",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  let xmlData = item.json.data || item.json.body || item.json;\n  \n  if (typeof xmlData === 'object' && xmlData !== null) {\n    xmlData = JSON.stringify(xmlData);\n  }\n  \n  if (!xmlData || typeof xmlData !== 'string') {\n    console.log(\"Kunne ikke finde XML data\");\n    continue;\n  }\n  \n  const cleanCDATA = (text) => {\n    if (!text) return '';\n    return text.replace(/<!\\[CDATA\\[(.*?)\\]\\]>/gs, '$1').trim();\n  };\n  \n  const stripHTML = (html) => {\n    if (!html) return '';\n    return html.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n  };\n  \n  const extractTag = (xml, tag) => {\n    const regex = new RegExp(`<${tag}[^>]*>([\\\\s\\\\S]*?)<\\\\/${tag}>`, 'i');  // FIX: ( ) ikke ` `\n    const match = xml.match(regex);\n    return match ? cleanCDATA(match[1]) : '';\n  };\n  \n  const feedTitle = extractTag(xmlData, 'title') || 'DR Sport';\n  \n  const itemRegex = /<item[^>]*>([\\s\\S]*?)<\\/item>/gi;\n  const itemMatches = [];\n  let match;\n  \n  while ((match = itemRegex.exec(xmlData)) !== null) {\n    itemMatches.push(match[1]);\n  }\n  \n  console.log(`Fandt ${itemMatches.length} artikler i feedet`);  // FIX: ( ) ikke ` `\n  \n  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);\n  \n  for (const itemXml of itemMatches) {\n    const title = extractTag(itemXml, 'title');\n    const link = extractTag(itemXml, 'link');\n    const description = extractTag(itemXml, 'description');\n    const content = extractTag(itemXml, 'content:encoded') || extractTag(itemXml, 'encoded');\n    const pubDateStr = extractTag(itemXml, 'pubDate') || extractTag(itemXml, 'dc:date');\n    \n    let pubDate = new Date();\n    if (pubDateStr) {\n      pubDate = new Date(pubDateStr);\n      if (isNaN(pubDate.getTime())) {\n        pubDate = new Date();\n      }\n    }\n    \n    if (pubDate > cutoff) {\n      const summary = content || description || '';  // FIX: Sikr tom string hvis begge mangler\n      \n      items.push({\n        json: {\n          title: stripHTML(title) || 'Ingen titel',\n          link: link || '',\n          summary: stripHTML(summary).substring(0, 500),\n          published: pubDateStr || pubDate.toISOString(),\n          source: feedTitle,\n          publishedDate: pubDate.toISOString()\n        }\n      });\n    }\n  }\n}\n\nconsole.log(`Returnerer ${items.length} artikler fra sidste 48 timer`);  // FIX: ( ) ikke ` `\n\nif (items.length === 0) {\n  console.log(\"ADVARSEL: Ingen artikler fundet.\");\n  return [{\n    json: {\n      message: \"Ingen nye artikler\",\n      articles: []\n    }\n  }];\n}\n\nreturn items;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1088,
+          -16
+        ],
+        "id": "44bf1c29-376b-4ff1-b668-01564d9ec7df",
+        "name": "RSS Parser",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent input\nconst firstInput = $input.first().json;\n\nconsole.log(\"=== INPUT CHECK ===\");\nconsole.log(\"Input keys:\", Object.keys(firstInput));\n\n// Artiklerne ligger i 'data' array fra Aggregate\nlet allArticles = [];\n\nif (firstInput.data && Array.isArray(firstInput.data)) {\n  allArticles = firstInput.data;\n  console.log(`✅ Fandt ${allArticles.length} artikler i data array`);\n} else if (Array.isArray($input.all())) {\n  allArticles = $input.all().map(item => item.json);\n  console.log(`✅ Fandt ${allArticles.length} artikler fra input.all()`);\n}\n\nif (allArticles.length === 0) {\n  console.log(\"❌ FEJL: Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Ingen artikler\",\n      articleList: \"\",\n      articles: [],\n      count: 0\n    }\n  }];\n}\n\nconsole.log(`\\n📊 Processerer ${allArticles.length} artikler`);\nconsole.log(\"Første artikel:\", allArticles[0].title);\n\n// Lav artikel liste\nconst articleList = allArticles.map((article, index) => {\n  const title = article.title || 'Ingen titel';\n  const source = article.source || 'Ukendt kilde';\n  const published = article.published || 'Ukendt dato';\n  const summary = article.summary || '';\n  \n  const shortSummary = summary.length > 200 \n    ? summary.substring(0, 200) + '...' \n    : summary;\n  \n  return `${index}. ${title}\\n   Kilde: ${source}\\n   Dato: ${published}\\n   Sammendrag: ${shortSummary}`;\n}).join('\\n\\n');\n\nconsole.log(\"\\n✅ SUCCESS!\");\nconsole.log(`Artikel liste oprettet (${articleList.length} chars)`);\nconsole.log(\"Preview:\", articleList.substring(0, 200));\n\nreturn [{\n  json: {\n    articleList: articleList,\n    articles: allArticles,    // ← NU sender vi array, ikke 0!\n    count: allArticles.length\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -720,
+          -16
+        ],
+        "id": "e5c8acb1-4a38-4d88-9083-f2941d3cf329",
+        "name": "Forbered til AI"
+      },
+      {
+        "parameters": {
+          "content": "[Udtræk valgte artikler]\n    ↓\nAI Agent 2: Opsummer hver artikel (Loop)\n    ↓\nAggregate (saml opsummeringer)\n    ↓\nForbered newsletter data\n    ↓\nAI Agent 3: Generer HTML newsletter\n    ↓\nGmail: Send email ",
+          "height": 240,
+          "width": 304
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -448,
+          -400
+        ],
+        "id": "7880dd9a-43f2-4e0c-9083-8fd9c1cce097",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "options": {
+            "reset": false
+          }
+        },
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          0,
+          -16
+        ],
+        "id": "586a301f-c21e-4c38-8903-c9a1baddac9b",
+        "name": "Loop over artikler"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "builtInTools": {},
+          "options": {
+            "maxTokens": 300,
+            "temperature": 0.3
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -1296,
+          576
+        ],
+        "id": "8d3da086-94eb-49de-9e3e-b4d6a89a3a39",
+        "name": "OpenAI Chat Model1",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "Titel: {{ $json.title }}\n\nLav en sammenfatning baseret på denne titel på dansk (2-3 sætninger). Titlen skal også angives.",
+          "options": {
+            "systemMessage": "Du er ekspert i at opsummere sportsnyheder baseret på titler og korte beskrivelser. Du laver informative sammenfatninger selv når der kun er begrænset information."
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -1296,
+          368
+        ],
+        "id": "d86b6c02-e5d0-4411-9cf8-d86129a11cc8",
+        "name": "AI Agent2: Opsummer artikel"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent AI sammendrag\nconst aiOutput = $json.output || $json;\nconst aiSummary = typeof aiOutput === 'string' ? aiOutput.trim() : String(aiOutput).trim();\n\n// Brug current item index til at finde samme artikel i prep node\nconst currentIndex = $itemIndex;\n\nconsole.log(`Processing item ${currentIndex}`);\n\n// Hent fra prep node med samme index\nconst prepNode = $('Gem artikel + forbered prompt');\nconst allPrepItems = prepNode.all();\n\nconsole.log(`Prep node har ${allPrepItems.length} items`);\n\nif (currentIndex >= allPrepItems.length) {\n  console.log(`❌ Index ${currentIndex} er uden for prep node range`);\n  return {\n    json: {\n      error: \"Index mismatch\"\n    }\n  };\n}\n\nconst originalArticle = allPrepItems[currentIndex].json.article;\n\nconsole.log(`✅ Artikel ${currentIndex}:`, originalArticle.title);\n\nreturn {\n  json: {\n    title: originalArticle.title,\n    link: originalArticle.link,\n    summary: aiSummary,\n    source: originalArticle.source,\n    published: originalArticle.published,\n    publishedDate: originalArticle.publishedDate\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -944,
+          368
+        ],
+        "id": "6aee163b-13b5-42f9-8a77-8641ca7353a2",
+        "name": "Kombiner med original"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -912,
+          -16
+        ],
+        "id": "7ab409f2-aa9e-48db-955d-dee380d204d4",
+        "name": "Samler alle artikler"
+      },
+      {
+        "parameters": {
+          "url": "https://www.dr.dk/nyheder/service/feeds/sporten",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1280,
+          -16
+        ],
+        "id": "85e0194b-5929-47be-a381-6b8414de9041",
+        "name": "Henter nyheder DR sport"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Lav et professionelt HTML nyhedsbrev om dansk sport baseret på disse artikler.\n\nDato: {{ $json.date }}\nAntal artikler: {{ $json.count }}\n\nArtikler:\n{{ $json.articleText }}\n\nSTRUKTUR:\n1. Header med \"Dagens Sportsnyheder\" og dato\n2. Kort velkomst (1-2 sætninger)\n3. Artikel sektion - præsenter hver artikel med:\n   - Titel som stort, klikbart link\n   - Sammenfatning\n   - Kilde og dato diskret\n4. Footer med \"God læselyst!\"\n\nDESIGN KRAV:\n- Moderne, mobil-venligt HTML\n- Max bredde: 600px\n- Dansk flag farver som accenter: rød (#C8102E) for overskrifter\n- Font: Arial eller sans-serif\n- Responsive design\n- God spacing mellem artikler (20px margin)\n- Artikel titler: font-size 18px, font-weight bold, color #C8102E\n- Links: text-decoration none, hover underline\n- Kilde info: font-size 12px, color #666\n- White background, clean look\n\nVIGTIGE KRAV:\n- Start med <!DOCTYPE html>\n- Returner KUN ren HTML kode\n- Ingen markdown code blocks\n- Ingen forklaring eller preamble\n- Klar til at sende som email",
+          "options": {
+            "systemMessage": "Du er ekspert i at skrive professionelle HTML nyhedsbreve. Du laver moderne, mobil-venlige designs med god typografi og ren HTML kode.\n"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -272,
+          368
+        ],
+        "id": "5507bbe1-6453-421a-a9bb-692d1925f028",
+        "name": "AI Agent 3: Newsletter"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "mode": "list",
+            "value": "gpt-4.1-mini"
+          },
+          "builtInTools": {},
+          "options": {
+            "maxTokens": 4000,
+            "temperature": 0.5
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -272,
+          576
+        ],
+        "id": "2d4b384d-41fb-4573-a343-3b8955c7a879",
+        "name": "OpenAI Chat Model2",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const article = $input.first().json;\n\nconsole.log(\"Gemmer artikel:\", article.title);\n\nreturn {\n  json: {\n    // Send til AI prompt\n    title: article.title,\n    source: article.source,\n    summary: article.summary,\n    \n    // Gem HELE artiklen til memory (så den passes igennem)\n    article: article\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1488,
+          368
+        ],
+        "id": "8b775880-7b10-4b58-9d93-ed372579049a",
+        "name": "Gem artikel + forbered prompt"
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "={{ $('Gem artikel + forbered prompt').item.json.title }}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.3,
+        "position": [
+          -1136,
+          576
+        ],
+        "id": "904cb471-eb05-4e91-9b3c-62d625556680",
+        "name": "Simple Memory"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent input\nconst firstInput = $input.first().json;\n\nconsole.log(\"=== INPUT CHECK ===\");\nconsole.log(\"Input keys:\", Object.keys(firstInput));\n\n// Artiklerne ligger i 'data' array fra Aggregate\nlet articles = [];\n\nif (firstInput.data && Array.isArray(firstInput.data)) {\n  articles = firstInput.data;\n  console.log(`✅ Fandt ${articles.length} artikler i data array`);\n} else if (Array.isArray($input.all())) {\n  articles = $input.all().map(item => item.json);\n  console.log(`✅ Fandt ${articles.length} artikler fra input.all()`);\n}\n\nif (articles.length === 0) {\n  console.log(\"❌ Ingen artikler fundet!\");\n  return [{\n    json: {\n      error: \"Ingen artikler\",\n      articleText: \"\",\n      articles: [],\n      count: 0\n    }\n  }];\n}\n\nconsole.log(`📰 Forbereder newsletter med ${articles.length} artikler`);\nconsole.log(\"Første artikel:\", articles[0].title);\n\n// Format artikler til newsletter prompt\nconst articleText = articles.map((article, i) => {\n  const publishedDate = new Date(article.published);\n  const danishDate = publishedDate.toLocaleDateString('da-DK', {\n    day: 'numeric',\n    month: 'short'\n  });\n  \n  return `${i + 1}. ${article.title}\n   ${article.summary}\n   Læs mere: ${article.link}\n   Kilde: ${article.source} | ${danishDate}`;\n}).join('\\n\\n');\n\n// Dansk dato til nyhedsbrev overskrift\nconst today = new Date();\nconst danishDate = today.toLocaleDateString('da-DK', { \n  weekday: 'long', \n  year: 'numeric', \n  month: 'long', \n  day: 'numeric' \n});\n\nconsole.log(\"\\n✅ Newsletter data klar!\");\nconsole.log(\"Preview:\", articleText.substring(0, 300));\n\nreturn [{\n  json: {\n    articles: articles,\n    articleText: articleText,\n    count: articles.length,\n    date: danishDate,\n    dateShort: today.toLocaleDateString('da-DK')\n  }\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -496,
+          368
+        ],
+        "id": "ebf3bd10-9fa8-4e6d-bc5e-d2777035f29d",
+        "name": "Forbered til AI3"
+      },
+      {
+        "parameters": {
+          "aggregate": "aggregateAllItemData",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.aggregate",
+        "typeVersion": 1,
+        "position": [
+          -720,
+          368
+        ],
+        "id": "715aba41-b2f9-407e-9460-186c35f356fc",
+        "name": "Saml alle opsummeringer"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Hent HTML fra AI\nlet html = $json.output || $json;\n\n// Hvis det er et object, udtræk tekst\nif (typeof html === 'object' && html.text) {\n  html = html.text;\n}\n\n// Fjern eventuelle markdown code blocks\nhtml = String(html)\n  .replace(/```html\\n/g, '')\n  .replace(/```\\n/g, '')\n  .replace(/```/g, '')\n  .trim();\n\n// Email subject med dansk dato\nconst today = new Date();\nconst subject = `📰 Dagens Sportsnyheder - ${today.toLocaleDateString('da-DK')}`;\n\nconsole.log(`✅ Email klar: ${html.length} chars`);\nconsole.log(\"Subject:\", subject);\n\nreturn {\n  json: {\n    html: html,\n    subject: subject\n  }\n};\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          64,
+          368
+        ],
+        "id": "2179217d-e998-4cae-b30a-2835fec9bb69",
+        "name": "Forbered email"
+      },
+      {
+        "parameters": {
+          "sendTo": "sofierytterbroman95@gmail.com",
+          "subject": "={{ $json.subject }}",
+          "message": "={{ $json.html }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          288,
+          368
+        ],
+        "id": "17759c4e-7530-4598-9ce1-d73ead15f575",
+        "name": "Send til Gmail",
+        "webhookId": "899f6d33-b0b4-4bde-b5ce-1f4df69290b4",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "dDCsg9Ju4teozM0v",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "path": "sportsletter",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -1680,
+          -160
+        ],
+        "id": "b8b2959e-660b-4aa1-b38f-c208b96cd3f5",
+        "name": "Webhook",
+        "webhookId": "830a7e69-806f-4817-bfe0-6131faad4013"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -1600,
+          -16
+        ],
+        "id": "f53be4b5-b8c5-4287-b41c-fdaba256ca74",
+        "name": "When clicking ‘Execute workflow’"
+      }
+    ],
+    "connections": {
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Udtræk valgte artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "RSS Parser": {
+        "main": [
+          [
+            {
+              "node": "Samler alle artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered til AI": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Udtræk valgte artikler": {
+        "main": [
+          [
+            {
+              "node": "Loop over artikler",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop over artikler": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Gem artikel + forbered prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model1": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent2: Opsummer artikel",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent2: Opsummer artikel": {
+        "main": [
+          [
+            {
+              "node": "Kombiner med original",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Samler alle artikler": {
+        "main": [
+          [
+            {
+              "node": "Forbered til AI",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Henter nyheder DR sport": {
+        "main": [
+          [
+            {
+              "node": "RSS Parser",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Kombiner med original": {
+        "main": [
+          [
+            {
+              "node": "Saml alle opsummeringer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model2": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent 3: Newsletter",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gem artikel + forbered prompt": {
+        "main": [
+          [
+            {
+              "node": "AI Agent2: Opsummer artikel",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent2: Opsummer artikel",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Saml alle opsummeringer": {
+        "main": [
+          [
+            {
+              "node": "Forbered til AI3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent 3: Newsletter": {
+        "main": [
+          [
+            {
+              "node": "Forbered email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered til AI3": {
+        "main": [
+          [
+            {
+              "node": "AI Agent 3: Newsletter",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Forbered email": {
+        "main": [
+          [
+            {
+              "node": "Send til Gmail",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Henter nyheder DR sport",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Henter nyheder DR sport",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Sofie  Broman",
+    "name": "Version b1d7bbad",
+    "description": "",
+    "autosaved": true
+  },
   "tags": []
 }
