@@ -1,0 +1,278 @@
+{
+  "updatedAt": "2026-04-03T15:40:08.216Z",
+  "createdAt": "2026-03-30T17:29:28.580Z",
+  "id": "pmh2zkt6zhpgQo2siuNze",
+  "name": "Vector Search tool",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3b3ec3c2-e90a-4c4a-9416-ae91edb8a6b6",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ model: \"nomic-embed-text\", prompt: $json.query }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "60e9acc3-0d4c-4ee5-877b-733c3ebbf4a3",
+      "name": "Send til Ollama for embedding"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({   statements: [{     statement: `       CALL db.index.vector.queryNodes('exercise_chunk_index', 5, $embedding)       YIELD node, score       MATCH (e:Øvelse)-[:HAR_CHUNK]->(node)       RETURN e.navn AS navn, node.text AS tekst, score       ORDER BY score DESC     `,     parameters: {       embedding: $json.embedding     }   }] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6da86aa0-126f-4c8b-99ac-70eb38f3ab07",
+      "name": "Neo4j vector search",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.results[0].data;\n\nconst øvelser = results.map(row => \n  `${row.row[0]}: ${row.row[1]} (score: ${row.row[2].toFixed(2)})`\n).join('\\n');\n\nreturn [{ json: { response: øvelser } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "02f2359e-4403-4b22-8330-5060a0251406",
+      "name": "Samler alle øvelserne"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send til Ollama for embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send til Ollama for embedding": {
+      "main": [
+        [
+          {
+            "node": "Neo4j vector search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neo4j vector search": {
+      "main": [
+        [
+          {
+            "node": "Samler alle øvelserne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Samler alle øvelserne": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "722b9f94-21b1-4f76-b79a-9e3adf4d0d69",
+  "activeVersionId": "05b84667-2447-4123-bcf5-a64823255529",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T17:29:28.587Z",
+      "createdAt": "2026-03-30T17:29:28.587Z",
+      "role": "workflow:owner",
+      "workflowId": "pmh2zkt6zhpgQo2siuNze",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-30T18:00:32.000Z",
+    "createdAt": "2026-03-30T18:00:16.282Z",
+    "versionId": "05b84667-2447-4123-bcf5-a64823255529",
+    "workflowId": "pmh2zkt6zhpgQo2siuNze",
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "query"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "3b3ec3c2-e90a-4c4a-9416-ae91edb8a6b6",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://host.docker.internal:11434/api/embeddings",
+          "sendBody": true,
+          "contentType": "raw",
+          "rawContentType": "application/json",
+          "body": "={{ JSON.stringify({ model: \"nomic-embed-text\", prompt: $json.query }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          208,
+          0
+        ],
+        "id": "60e9acc3-0d4c-4ee5-877b-733c3ebbf4a3",
+        "name": "Send til Ollama for embedding"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "contentType": "raw",
+          "rawContentType": "application/json",
+          "body": "={{ JSON.stringify({   statements: [{     statement: `       CALL db.index.vector.queryNodes('exercise_chunk_index', 5, $embedding)       YIELD node, score       MATCH (e:Øvelse)-[:HAR_CHUNK]->(node)       RETURN e.navn AS navn, node.text AS tekst, score       ORDER BY score DESC     `,     parameters: {       embedding: $json.embedding     }   }] }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          416,
+          0
+        ],
+        "id": "6da86aa0-126f-4c8b-99ac-70eb38f3ab07",
+        "name": "Neo4j vector search",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "pZ6fSL57NtM11zzy",
+            "name": "neo4j"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const results = $input.first().json.results[0].data;\n\nconst øvelser = results.map(row => \n  `${row.row[0]}: ${row.row[1]} (score: ${row.row[2].toFixed(2)})`\n).join('\\n');\n\nreturn [{ json: { response: øvelser } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          624,
+          0
+        ],
+        "id": "02f2359e-4403-4b22-8330-5060a0251406",
+        "name": "Code in JavaScript"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Send til Ollama for embedding",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send til Ollama for embedding": {
+        "main": [
+          [
+            {
+              "node": "Neo4j vector search",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Neo4j vector search": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "Sofie  Broman",
+    "name": "Version 1",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
