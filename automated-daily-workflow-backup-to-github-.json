@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-09T14:07:38.915Z",
+  "updatedAt": "2026-04-27T16:50:05.571Z",
   "createdAt": "2026-02-02T14:54:41.296Z",
   "id": "eNOx8zyB0t0dB_GG4Na_U",
   "name": "Automated daily workflow backup to GitHub",
@@ -98,7 +98,7 @@
           "cachedResultName": "n8n-workflow-backups",
           "cachedResultUrl": "https://github.com/sobr0002/n8n-workflow-backups"
         },
-        "filePath": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json",
+        "filePath": "=-{{ ($('Retrieve workflows').item.json.tags?.[0]?.name || 'notag').replace(/\\s+/g, '-').toLowerCase() }}.json",
         "fileContent": "={{ $('To base64').item.json.data }}",
         "commitMessage": "=backup-{{ $('Commit date & file name').item.json.commitDate }}",
         "additionalParameters": {
@@ -111,8 +111,8 @@
       "name": "Update file",
       "type": "n8n-nodes-base.github",
       "position": [
-        1648,
-        160
+        1856,
+        144
       ],
       "webhookId": "27218087-8df7-474d-a39f-70cfa9c34ec8",
       "typeVersion": 1,
@@ -151,7 +151,7 @@
       "name": "Upload file",
       "type": "n8n-nodes-base.github",
       "position": [
-        1648,
+        1856,
         320
       ],
       "webhookId": "ce4b561b-acb9-4cd8-b76f-4928dada9674",
@@ -168,9 +168,8 @@
         "conditions": {
           "string": [
             {
-              "value1": "={{ $('Aggregate').item.json.name }}",
-              "operation": "contains",
-              "value2": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json"
+              "value1": "={{ $('List files from repo').all().map(f => f.json.path).includes(\n  $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() + '-' +\n  (($('Retrieve workflows').item.json.tags?.[0]?.name || 'notag').replace(/\\s+/g, '-').toLowerCase()) +\n  '.json'\n) }}",
+              "operation": "contains"
             }
           ]
         }
@@ -179,7 +178,7 @@
       "name": "Check if file exists",
       "type": "n8n-nodes-base.if",
       "position": [
-        1488,
+        1504,
         240
       ],
       "typeVersion": 1
@@ -245,7 +244,7 @@
               "id": "b0fe1bcc-e79c-4a6b-b8b4-44222c8bf4e8",
               "name": "fileName",
               "type": "string",
-              "value": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json"
+              "value": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ ($('Retrieve workflows').item.json.tags?.[0]?.name || 'notag').replace(/\\s+/g, '-').toLowerCase() }}.json"
             }
           ]
         },
@@ -280,7 +279,7 @@
       "parameters": {
         "content": "### Commit + edit/create files if needed",
         "height": 380,
-        "width": 460,
+        "width": 668,
         "color": 4
       },
       "id": "dc914f31-e6b5-43b0-8a4e-f9f46118fa30",
@@ -411,7 +410,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "bf0bbddf-d024-4b65-9300-c72586a79b42",
+  "versionId": "0631be17-702d-4f38-a59c-d4e9a04b27d5",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
