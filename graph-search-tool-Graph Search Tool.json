@@ -1,0 +1,268 @@
+{
+  "updatedAt": "2026-03-31T09:55:04.460Z",
+  "createdAt": "2026-03-30T18:05:52.841Z",
+  "id": "uyetCTUct65gud9WgnT1l",
+  "name": "Graph Search Tool",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "muscles"
+            },
+            {
+              "name": "level"
+            },
+            {
+              "name": "equipment"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f2f90dfb-007a-4f04-89ea-63940549863a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const muscles = $input.first().json.muscles || '';\nconst level = $input.first().json.level || '';\nconst equipment = $input.first().json.equipment || '';\n\nlet matches = [`MATCH (e:Øvelse)`];\nlet conditions = [];\n\nif (muscles) {\n  matches.push(`MATCH (e)-[:PRIMÆR_MUSKEL]->(m:Muskelgruppe {navn: \"${muscles}\"})`);\n}\nif (level) {\n  matches.push(`MATCH (e)-[:HAR_NIVEAU]->(n:Niveau {navn: \"${level}\"})`);\n}\nif (equipment) {\n  matches.push(`MATCH (e)-[:KRÆVER_UDSTYR]->(u:Udstyr {type: \"${equipment}\"})`);\n}\n\nconst query = `\n  ${matches.join('\\n')}\n  RETURN e.navn AS navn, e.level AS niveau, e.force AS force\n  LIMIT 10\n`;\n\nreturn [{ json: { statement: query } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4cb8cef1-aac2-40d6-a86a-e5ddcf2a4757",
+      "name": "Byg Cypher query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ statements: [{ statement: $json.statement }] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b99131b8-b976-43fe-a032-5ff635413e71",
+      "name": "Send til Neo4j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.first().json.results[0].data;\n\nif (results.length === 0) {\n  return [{ json: { response: \"Ingen øvelser fundet med de valgte kriterier.\" } }];\n}\n\nconst øvelser = results.map(row => \n  `${row.row[0]} (niveau: ${row.row[1]}, force: ${row.row[2]})`\n).join('\\n');\n\nreturn [{ json: { response: øvelser } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "00d10177-0903-4740-9b58-fc941a87f37a",
+      "name": "Samler alle øvelser fra Neo4j"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Byg Cypher query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Byg Cypher query": {
+      "main": [
+        [
+          {
+            "node": "Send til Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send til Neo4j": {
+      "main": [
+        [
+          {
+            "node": "Samler alle øvelser fra Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "23d3bb9c-aaf9-4305-9d50-a182d0617d2c",
+  "activeVersionId": "23d3bb9c-aaf9-4305-9d50-a182d0617d2c",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T18:05:52.852Z",
+      "createdAt": "2026-03-30T18:05:52.852Z",
+      "role": "workflow:owner",
+      "workflowId": "uyetCTUct65gud9WgnT1l",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-31T09:55:10.000Z",
+    "createdAt": "2026-03-31T09:55:04.462Z",
+    "versionId": "23d3bb9c-aaf9-4305-9d50-a182d0617d2c",
+    "workflowId": "uyetCTUct65gud9WgnT1l",
+    "nodes": [
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "muscles"
+              },
+              {
+                "name": "level"
+              },
+              {
+                "name": "equipment"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "f2f90dfb-007a-4f04-89ea-63940549863a",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "jsCode": "const muscles = $input.first().json.muscles || '';\nconst level = $input.first().json.level || '';\nconst equipment = $input.first().json.equipment || '';\n\nlet matches = [`MATCH (e:Øvelse)`];\nlet conditions = [];\n\nif (muscles) {\n  matches.push(`MATCH (e)-[:PRIMÆR_MUSKEL]->(m:Muskelgruppe {navn: \"${muscles}\"})`);\n}\nif (level) {\n  matches.push(`MATCH (e)-[:HAR_NIVEAU]->(n:Niveau {navn: \"${level}\"})`);\n}\nif (equipment) {\n  matches.push(`MATCH (e)-[:KRÆVER_UDSTYR]->(u:Udstyr {type: \"${equipment}\"})`);\n}\n\nconst query = `\n  ${matches.join('\\n')}\n  RETURN e.navn AS navn, e.level AS niveau, e.force AS force\n  LIMIT 10\n`;\n\nreturn [{ json: { statement: query } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          208,
+          0
+        ],
+        "id": "4cb8cef1-aac2-40d6-a86a-e5ddcf2a4757",
+        "name": "Byg Cypher query"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendBody": true,
+          "contentType": "raw",
+          "rawContentType": "application/json",
+          "body": "={{ JSON.stringify({ statements: [{ statement: $json.statement }] }) }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          416,
+          0
+        ],
+        "id": "b99131b8-b976-43fe-a032-5ff635413e71",
+        "name": "Send til Neo4j",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "pZ6fSL57NtM11zzy",
+            "name": "neo4j"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const results = $input.first().json.results[0].data;\n\nif (results.length === 0) {\n  return [{ json: { response: \"Ingen øvelser fundet med de valgte kriterier.\" } }];\n}\n\nconst øvelser = results.map(row => \n  `${row.row[0]} (niveau: ${row.row[1]}, force: ${row.row[2]})`\n).join('\\n');\n\nreturn [{ json: { response: øvelser } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          624,
+          0
+        ],
+        "id": "00d10177-0903-4740-9b58-fc941a87f37a",
+        "name": "Samler alle øvelser fra Neo4j"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Byg Cypher query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Byg Cypher query": {
+        "main": [
+          [
+            {
+              "node": "Send til Neo4j",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send til Neo4j": {
+        "main": [
+          [
+            {
+              "node": "Samler alle øvelser fra Neo4j",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Sofie  Broman",
+    "name": "Version 23d3bb9c",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
