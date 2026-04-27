@@ -1,0 +1,191 @@
+{
+  "updatedAt": "2026-03-30T16:53:18.160Z",
+  "createdAt": "2026-03-30T14:47:46.779Z",
+  "id": "Xr3KSubqlxSiVWQrek8F9",
+  "name": "Graf-pipeline-styrketræning",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "15ad6a96-a203-4f22-99a9-0ef5b534217e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "18dd0fdd-4fee-4ad5-a285-fa3ef363e88f",
+      "name": "Hent øvelser fra GitHub"
+    },
+    {
+      "parameters": {
+        "jsCode": "const exercise = $input.first().json;\n\nconst statements = [];\n\n// 1. Opret Øvelse-node\nstatements.push({\n  statement: `MERGE (e:Øvelse {id: $id}) \n    SET e.navn = $name, e.force = $force, \n    e.level = $level, e.mechanic = $mechanic`,\n  parameters: {\n    id: exercise.id,\n    name: exercise.name,\n    force: exercise.force,\n    level: exercise.level,\n    mechanic: exercise.mechanic\n  }\n});\n\n// 2. Opret Niveau-node + relation\nstatements.push({\n  statement: `MERGE (n:Niveau {navn: $level})\n    WITH n\n    MATCH (e:Øvelse {id: $id})\n    MERGE (e)-[:HAR_NIVEAU]->(n)`,\n  parameters: { level: exercise.level, id: exercise.id }\n});\n\n// 3. Opret Udstyr-node + relation\nstatements.push({\n  statement: `MERGE (u:Udstyr {type: $equipment})\n    WITH u\n    MATCH (e:Øvelse {id: $id})\n    MERGE (e)-[:KRÆVER_UDSTYR]->(u)`,\n  parameters: { equipment: exercise.equipment, id: exercise.id }\n});\n\n// 4. Opret Kategori-node + relation\nstatements.push({\n  statement: `MERGE (k:Kategori {navn: $category})\n    WITH k\n    MATCH (e:Øvelse {id: $id})\n    MERGE (e)-[:I_KATEGORI]->(k)`,\n  parameters: { category: exercise.category, id: exercise.id }\n});\n\n// 5. Primære muskler + relationer\nfor (const muscle of exercise.primaryMuscles) {\n  statements.push({\n    statement: `MERGE (m:Muskelgruppe {navn: $muscle})\n      WITH m\n      MATCH (e:Øvelse {id: $id})\n      MERGE (e)-[:PRIMÆR_MUSKEL]->(m)`,\n    parameters: { muscle, id: exercise.id }\n  });\n}\n\n// 6. Sekundære muskler + relationer\nfor (const muscle of exercise.secondaryMuscles) {\n  statements.push({\n    statement: `MERGE (m:Muskelgruppe {navn: $muscle})\n      WITH m\n      MATCH (e:Øvelse {id: $id})\n      MERGE (e)-[:SEKUNDÆR_MUSKEL]->(m)`,\n    parameters: { muscle, id: exercise.id }\n  });\n}\n\nreturn [{ json: { statements } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "b377c612-8084-4161-b06f-811af4f4855f",
+      "name": "Byg Cypher Query"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($input.first().json.data);\n\n// Tag kun den første øvelse til test\n//const testData = [data[0]];\n\nreturn data.map(exercise => ({\n  json: {\n    id: exercise.id || exercise.name.replace(/[^a-zA-Z0-9]/g, '_'),\n    name: exercise.name,\n    force: exercise.force || 'unknown',\n    level: exercise.level || 'unknown',\n    mechanic: exercise.mechanic || 'unknown',\n    equipment: exercise.equipment || 'unknown',\n    category: exercise.category || 'unknown',\n    primaryMuscles: exercise.primaryMuscles || [],\n    secondaryMuscles: exercise.secondaryMuscles || []\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "02a1aaf3-1977-4e9a-834b-19c288a0d84e",
+      "name": "Forbered øvelsesdata"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "8ed50fb0-c419-4e55-8878-33233ae5a882",
+      "name": "Send øvelser til Neo5j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        608,
+        0
+      ],
+      "id": "62037e54-bdac-4be7-ba4b-737a504452fb",
+      "name": "Send én øvelse ad gangen"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Hent øvelser fra GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hent øvelser fra GitHub": {
+      "main": [
+        [
+          {
+            "node": "Forbered øvelsesdata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forbered øvelsesdata": {
+      "main": [
+        [
+          {
+            "node": "Send én øvelse ad gangen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Byg Cypher Query": {
+      "main": [
+        [
+          {
+            "node": "Send øvelser til Neo5j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send én øvelse ad gangen": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Byg Cypher Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send øvelser til Neo5j": {
+      "main": [
+        [
+          {
+            "node": "Send én øvelse ad gangen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "38b4e7f4-a34c-4000-b89b-fea9ac7e86cc",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T14:47:46.786Z",
+      "createdAt": "2026-03-30T14:47:46.786Z",
+      "role": "workflow:owner",
+      "workflowId": "Xr3KSubqlxSiVWQrek8F9",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
