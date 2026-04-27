@@ -1,0 +1,270 @@
+{
+  "updatedAt": "2026-04-03T15:15:12.607Z",
+  "createdAt": "2026-03-30T11:56:53.099Z",
+  "id": "Qunl9TVJKOHNET5U9-jmq",
+  "name": "Vektor-pipeline-styrketræning",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "94bf0135-6a76-4421-8065-07dc7344f30a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "48f7e084-0c6a-45d4-9963-14d4f08bfd20",
+      "name": "Hent JSON fra GitHub"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "=Content-Type: application/json",
+        "body": "={{ JSON.stringify({ model: \"nomic-embed-text\", prompt: $json.text }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        928,
+        16
+      ],
+      "id": "5ab53b0f-2cc3-4ab7-9e77-3b833982ca0d",
+      "name": "Send til Ollama for embedding"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1824,
+        16
+      ],
+      "id": "535ae4ae-dfdf-46eb-9f59-6f2e56cb4687",
+      "name": "Vent 1 sek. mellem hver request",
+      "webhookId": "f4cc1fd2-c292-403d-ba7d-7b6ee5b27c40"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * \nconst embedding = $input.first().json.embedding;\nconst chunkData = $('Chunk instructioner').item.json;\n\nreturn [{\n  json: {\n    exerciseId: chunkData.exerciseId,\n    exerciseName: chunkData.exerciseName,\n    chunkIndex: chunkData.chunkIndex,\n    text: chunkData.text,\n    embedding: embedding\n  }\n}]; */\nconst embedding = $input.first().json.embedding;\nconst chunkData = $('Send 1 chunk ad gangen').item.json;\n\nreturn [{\n  json: {\n    exerciseId: chunkData.exerciseId,\n    exerciseName: chunkData.exerciseName,\n    chunkIndex: chunkData.chunkIndex,\n    text: chunkData.text,\n    embedding: embedding\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        16
+      ],
+      "id": "1a8388f1-17cf-4f20-9145-43a28a593be7",
+      "name": "Konverter embedding til tal-array for vektor-søgning"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nreturn [{\n  json: {\n    statements: [{\n      statement: \"MERGE (c:ØvelseChunk {exerciseId: $exerciseId, chunkIndex: $chunkIndex}) SET c.text = $text, c.embedding = $embedding, c.exerciseName = $exerciseName\",\n      parameters: {\n        exerciseId: data.exerciseId,\n        exerciseName: data.exerciseName,\n        chunkIndex: data.chunkIndex,\n        text: data.text,\n        embedding: data.embedding\n      }\n    }]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        16
+      ],
+      "id": "efb7353f-3037-4d09-b711-c3aec8ab8c57",
+      "name": "Byg Neo4j body"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "=application/json",
+        "body": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1568,
+        16
+      ],
+      "id": "50fbedc0-0d08-4437-9c78-7f7c3fd5de01",
+      "name": "Gem embeddings i Neo4j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "neo4j"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "6007bef9-6f62-477a-b4bd-9c758646ef85",
+      "name": "Send 1 chunk ad gangen"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($input.first().json.data); // Henter 873 øvelser, konverterer fra String til JSON\n\n// Tag kun den første øvelse til test\n//const testData = [data[0]];\n\nconst chunks = []; // Tom liste\n\nfor (const exercise of data) { // Splitter hver sætning til chunk, som indekseres \n  exercise.instructions.forEach((sentence, index) => {\n    chunks.push({\n      json: {\n        exerciseId: exercise.id || exercise.name,\n        exerciseName: exercise.name,\n        chunkIndex: index,\n        text: sentence\n      }\n    });\n  });\n}\n\nreturn chunks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "68955dc3-6ab9-4fe3-bc93-8dc58f45aca7",
+      "name": "Chunk instructioner"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Hent JSON fra GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hent JSON fra GitHub": {
+      "main": [
+        [
+          {
+            "node": "Chunk instructioner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send til Ollama for embedding": {
+      "main": [
+        [
+          {
+            "node": "Konverter embedding til tal-array for vektor-søgning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vent 1 sek. mellem hver request": {
+      "main": [
+        [
+          {
+            "node": "Send 1 chunk ad gangen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konverter embedding til tal-array for vektor-søgning": {
+      "main": [
+        [
+          {
+            "node": "Byg Neo4j body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Byg Neo4j body": {
+      "main": [
+        [
+          {
+            "node": "Gem embeddings i Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gem embeddings i Neo4j": {
+      "main": [
+        [
+          {
+            "node": "Vent 1 sek. mellem hver request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send 1 chunk ad gangen": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send til Ollama for embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk instructioner": {
+      "main": [
+        [
+          {
+            "node": "Send 1 chunk ad gangen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "e806bfff-6828-40af-a20b-43e61ff55de0",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T11:56:53.106Z",
+      "createdAt": "2026-03-30T11:56:53.106Z",
+      "role": "workflow:owner",
+      "workflowId": "Qunl9TVJKOHNET5U9-jmq",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
