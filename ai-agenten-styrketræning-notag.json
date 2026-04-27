@@ -1,0 +1,496 @@
+{
+  "updatedAt": "2026-04-18T09:00:14.803Z",
+  "createdAt": "2026-03-30T16:56:59.003Z",
+  "id": "FQLFgujWP3a3mKaEiDwXi",
+  "name": "AI-agenten-styrketræning",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "aa3f7ff2-cfa6-4f1c-8db0-e8967978a822",
+      "name": "When chat message received",
+      "webhookId": "93fcfdbe-2026-40c4-9b31-36e7060a14ea"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Du er en erfaren personlig styrketræningsekspert med mange års erfaring. \nDu hjælper brugere med at finde de rigtige styrketræningsøvelser baseret \npå deres behov og mål.\n\n## Din rolle\n- Anbefal øvelser baseret på brugerens spørgsmål\n- Forklar hvorfor du anbefaler en bestemt øvelse\n- Brug altid dine tools til at søge efter øvelser før du svarer\n- Henvis altid til konkrete øvelser fra databasen\n\n## Sådan bruger du dine tools\n- Brug vector_search når brugeren spørger semantisk:\n  \"find noget der ligner hammer curl\"\n- Brug graph_search når brugeren filtrerer strukturelt:\n  \"kun biceps-øvelser på beginner-niveau uden udstyr\"\n- Brug begge tools (hybrid search) når spørgsmålet kræver det\n\n## Database værdier\nNår du bruger graph_search tool skal du bruge disse præcise værdier:\n\nUdstyr (equipment):\n- \"body only\" = ingen udstyr / kropsvægt\n- \"dumbbell\" = håndvægte\n- \"barbell\" = vægtstang\n- \"bands\" = elastikker\n- \"cable\" = kabel\n- \"kettlebells\" = kettlebells\n- \"machine\" = maskine\n\nMuskler (muscles):\n- \"biceps\", \"triceps\", \"chest\", \"shoulders\"\n- \"abdominals\", \"lats\", \"lower back\", \"middle back\"\n- \"quadriceps\", \"hamstrings\", \"glutes\", \"calves\"\n\nNiveau (level):\n- \"beginner\", \"intermediate\", \"expert\"\n\n## Guardrails\n- Svar KUN på spørgsmål om styrketræning og øvelser\n- Hvis brugeren spørger om noget andet, svar venligt:\n  \"Jeg er specialist i styrketræning og kan desværre ikke hjælpe med det\"\n- Giv aldrig medicinsk rådgivning\n- Anbefal altid at konsultere en læge ved skader"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "169137a9-99bb-478d-ad9e-49e40fd5699c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "07a4382d-1e4d-4b7f-a514-45145bc5bd8a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PxuVQEwJfOlSgdpe",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        304
+      ],
+      "id": "1a485189-f98a-4181-bbaf-7f78e2bbbc36",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Søg semantisk efter styrketræningsøvelser baseret på betydning og lighed. \nBrug dette tool når brugeren spørger efter øvelser der ligner en anden, \neller beskriver en bevægelse eller følelse.\nBrug også \"Call Graph Search Tool\" når brugeren filtrerer efter \"niveau\", \"muskler\" eller \"udstyr\".",
+        "workflowId": {
+          "__rl": true,
+          "value": "pmh2zkt6zhpgQo2siuNze",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pmh2zkt6zhpgQo2siuNze",
+          "cachedResultName": "Vector Search tool"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        176
+      ],
+      "id": "c948d308-8853-4a05-af04-7d2a80aa2fdc",
+      "name": "Call 'Vector Search tool'"
+    },
+    {
+      "parameters": {
+        "description": "Søg strukturelt efter styrketræningsøvelser baseret på muskler, niveau og udstyr. \nBrug dette tool når brugeren filtrerer specifikt, f.eks. \"kun biceps-øvelser \npå beginner-niveau uden udstyr\".",
+        "workflowId": {
+          "__rl": true,
+          "value": "uyetCTUct65gud9WgnT1l",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uyetCTUct65gud9WgnT1l",
+          "cachedResultName": "Graph Search Tool"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "muscles": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('muscles', ``, 'string') }}",
+            "level": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('level', ``, 'string') }}",
+            "equipment": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('equipment', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "muscles",
+              "displayName": "muscles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "level",
+              "displayName": "level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "equipment",
+              "displayName": "equipment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        192
+      ],
+      "id": "e2cd6359-3c28-4797-a1f7-59dd2ab4a5c6",
+      "name": "Call Graph Search Tool"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Vector Search tool'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Graph Search Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "9844a389-d4c9-4a1d-8075-a79aa685e0b9",
+  "activeVersionId": "9844a389-d4c9-4a1d-8075-a79aa685e0b9",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-30T16:56:59.018Z",
+      "createdAt": "2026-03-30T16:56:59.018Z",
+      "role": "workflow:owner",
+      "workflowId": "FQLFgujWP3a3mKaEiDwXi",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-04-18T09:01:21.000Z",
+    "createdAt": "2026-04-18T09:00:14.803Z",
+    "versionId": "9844a389-d4c9-4a1d-8075-a79aa685e0b9",
+    "workflowId": "FQLFgujWP3a3mKaEiDwXi",
+    "nodes": [
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.4,
+        "position": [
+          -336,
+          0
+        ],
+        "id": "aa3f7ff2-cfa6-4f1c-8db0-e8967978a822",
+        "name": "When chat message received",
+        "webhookId": "93fcfdbe-2026-40c4-9b31-36e7060a14ea"
+      },
+      {
+        "parameters": {
+          "options": {
+            "systemMessage": "Du er en erfaren personlig styrketræningsekspert med mange års erfaring. \nDu hjælper brugere med at finde de rigtige styrketræningsøvelser baseret \npå deres behov og mål.\n\n## Din rolle\n- Anbefal øvelser baseret på brugerens spørgsmål\n- Forklar hvorfor du anbefaler en bestemt øvelse\n- Brug altid dine tools til at søge efter øvelser før du svarer\n- Henvis altid til konkrete øvelser fra databasen\n\n## Sådan bruger du dine tools\n- Brug vector_search når brugeren spørger semantisk:\n  \"find noget der ligner hammer curl\"\n- Brug graph_search når brugeren filtrerer strukturelt:\n  \"kun biceps-øvelser på beginner-niveau uden udstyr\"\n- Brug begge tools (hybrid search) når spørgsmålet kræver det\n\n## Database værdier\nNår du bruger graph_search tool skal du bruge disse præcise værdier:\n\nUdstyr (equipment):\n- \"body only\" = ingen udstyr / kropsvægt\n- \"dumbbell\" = håndvægte\n- \"barbell\" = vægtstang\n- \"bands\" = elastikker\n- \"cable\" = kabel\n- \"kettlebells\" = kettlebells\n- \"machine\" = maskine\n\nMuskler (muscles):\n- \"biceps\", \"triceps\", \"chest\", \"shoulders\"\n- \"abdominals\", \"lats\", \"lower back\", \"middle back\"\n- \"quadriceps\", \"hamstrings\", \"glutes\", \"calves\"\n\nNiveau (level):\n- \"beginner\", \"intermediate\", \"expert\"\n\n## Guardrails\n- Svar KUN på spørgsmål om styrketræning og øvelser\n- Hvis brugeren spørger om noget andet, svar venligt:\n  \"Jeg er specialist i styrketræning og kan desværre ikke hjælpe med det\"\n- Giv aldrig medicinsk rådgivning\n- Anbefal altid at konsultere en læge ved skader"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -128,
+          0
+        ],
+        "id": "169137a9-99bb-478d-ad9e-49e40fd5699c",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4o-mini"
+          },
+          "builtInTools": {},
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.3,
+        "position": [
+          -128,
+          192
+        ],
+        "id": "07a4382d-1e4d-4b7f-a514-45145bc5bd8a",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "PxuVQEwJfOlSgdpe",
+            "name": "OpenAi account"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.3,
+        "position": [
+          -32,
+          304
+        ],
+        "id": "1a485189-f98a-4181-bbaf-7f78e2bbbc36",
+        "name": "Simple Memory"
+      },
+      {
+        "parameters": {
+          "description": "Søg semantisk efter styrketræningsøvelser baseret på betydning og lighed. \nBrug dette tool når brugeren spørger efter øvelser der ligner en anden, \neller beskriver en bevægelse eller følelse.\nBrug også \"Call Graph Search Tool\" når brugeren filtrerer efter \"niveau\", \"muskler\" eller \"udstyr\".",
+          "workflowId": {
+            "__rl": true,
+            "value": "pmh2zkt6zhpgQo2siuNze",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/pmh2zkt6zhpgQo2siuNze",
+            "cachedResultName": "Vector Search tool"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+            },
+            "matchingColumns": [
+              "query"
+            ],
+            "schema": [
+              {
+                "id": "query",
+                "displayName": "query",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          80,
+          176
+        ],
+        "id": "c948d308-8853-4a05-af04-7d2a80aa2fdc",
+        "name": "Call 'Vector Search tool'"
+      },
+      {
+        "parameters": {
+          "description": "Søg strukturelt efter styrketræningsøvelser baseret på muskler, niveau og udstyr. \nBrug dette tool når brugeren filtrerer specifikt, f.eks. \"kun biceps-øvelser \npå beginner-niveau uden udstyr\".",
+          "workflowId": {
+            "__rl": true,
+            "value": "uyetCTUct65gud9WgnT1l",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/uyetCTUct65gud9WgnT1l",
+            "cachedResultName": "Graph Search Tool"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "muscles": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('muscles', ``, 'string') }}",
+              "level": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('level', ``, 'string') }}",
+              "equipment": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('equipment', ``, 'string') }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "muscles",
+                "displayName": "muscles",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              },
+              {
+                "id": "level",
+                "displayName": "level",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              },
+              {
+                "id": "equipment",
+                "displayName": "equipment",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string"
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+        "typeVersion": 2.2,
+        "position": [
+          256,
+          192
+        ],
+        "id": "e2cd6359-3c28-4797-a1f7-59dd2ab4a5c6",
+        "name": "Call Graph Search Tool"
+      }
+    ],
+    "connections": {
+      "When chat message received": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Call 'Vector Search tool'": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Call Graph Search Tool": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Sofie  Broman",
+    "name": "Version 9844a389",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": []
+}
