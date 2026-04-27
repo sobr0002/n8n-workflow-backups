@@ -1,0 +1,180 @@
+{
+  "updatedAt": "2026-04-27T16:39:24.485Z",
+  "createdAt": "2026-04-27T16:37:54.667Z",
+  "id": "O5I2IRSFtdLtYrlaGLfyl",
+  "name": "Backup Workflows to GitHub",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "faf85176-6490-4393-acb3-78e5a49516d3",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 2
+            }
+          ]
+        }
+      },
+      "id": "eb097cf0-0975-40fe-9217-b2b04f17cd0e",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "id": "4d519fea-aba7-468f-8a7a-65542f1d4cf6",
+      "name": "Get Workflows",
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        480,
+        112
+      ],
+      "credentials": {
+        "n8nApi": {
+          "id": "gm52ktTSk8UEQzvj",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const workflow = $json;\nconst now = new Date().toISOString();\nconst timestamp = now.replace(/[:.]/g, '-');\nconst slug = (workflow.name || 'workflow')\n  .toLowerCase()\n  .replace(/[^a-z0-9]+/g, '-')\n  .replace(/^-|-$/g, '')\n  .slice(0, 80);\n\nreturn {\n  json: {\n    owner: $env.GITHUB_OWNER || 'CHANGE_ME_OWNER',\n    repository: $env.GITHUB_REPO || 'CHANGE_ME_REPO',\n    filePath: `n8n-backups/${timestamp}/${slug}-${workflow.id}.json`,\n    fileContent: JSON.stringify(workflow, null, 2),\n    commitMessage: `backup: ${workflow.name || workflow.id} (${now})`\n  }\n};"
+      },
+      "id": "bca9d798-48f6-4841-b29f-0416ab17aab2",
+      "name": "Prepare Backup Files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{$json.owner}}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{$json.repository}}"
+        },
+        "filePath": {
+          "__rl": true,
+          "mode": "expression",
+          "value": "={{$json.filePath}}"
+        },
+        "fileContent": "={{$json.fileContent}}",
+        "commitMessage": "={{$json.commitMessage}}"
+      },
+      "id": "d330266f-beca-48d5-9d9e-9e5f79f32bf5",
+      "name": "Upload to GitHub",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        112
+      ],
+      "webhookId": "54d6becf-0eac-472a-85b6-060594c591f7",
+      "credentials": {
+        "githubApi": {
+          "id": "nMHLnPQLeEv86f8D",
+          "name": "GitHub account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workflows": {
+      "main": [
+        [
+          {
+            "node": "Prepare Backup Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Backup Files": {
+      "main": [
+        [
+          {
+            "node": "Upload to GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "fe338c53-cf29-4e86-88e8-43ba59cdab21",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-04-27T16:37:54.672Z",
+      "createdAt": "2026-04-27T16:37:54.672Z",
+      "role": "workflow:owner",
+      "workflowId": "O5I2IRSFtdLtYrlaGLfyl",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
