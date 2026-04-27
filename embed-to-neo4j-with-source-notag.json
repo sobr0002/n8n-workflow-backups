@@ -1,0 +1,192 @@
+{
+  "updatedAt": "2026-03-09T16:40:43.219Z",
+  "createdAt": "2026-03-09T15:12:20.409Z",
+  "id": "PNhwte2suV7mlPxeabb34",
+  "name": "Embed to Neo4j with source",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        48
+      ],
+      "id": "432c260f-3aa2-4dab-be74-48c6076a1c1e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nomic-embed-text\",\n  \"prompt\": \"{{ $json.text }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        480,
+        48
+      ],
+      "id": "e5141ba3-02e6-462b-b845-72b6638d3941",
+      "name": "Ollama Embed"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sampleChunks = $('Sample Chunks').all();\n\nreturn sampleChunks.map((chunk, index) => {\n  const embeddingItem = $('Ollama Embed').all()[index];\n  return {\n    json: {\n      id: chunk.json.id,\n      text: chunk.json.text,\n      source: chunk.json.source,\n      embedding: Array.from(embeddingItem.json.embedding)\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        48
+      ],
+      "id": "df9bce75-f6f5-4b8a-8797-2116d66ad0b9",
+      "name": "Merge Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const fullText = $('Wikipedia Fetch').first().json.extract;\n\nconst chunkSize = 200;\nconst chunks = [];\nfor (let i = 0; i < fullText.length; i += chunkSize) {\n  chunks.push(fullText.slice(i, i + chunkSize));\n}\n\nreturn chunks.map((text, index) => ({\n  json: {\n    id: `wiki_${index}`,\n    text: text,\n    source: \"wikipedia\"\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        48
+      ],
+      "id": "4e673f06-7696-4878-92ac-e10a671889a8",
+      "name": "Sample Chunks"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"statements\": [\n    {\n      \"statement\": \"CREATE (c:Chunk {id: $id, text: $text, embedding: $embedding, source: $source})\",\n      \"parameters\": {\n        \"id\": \"{{ $json.id }}\",\n        \"text\": \"{{ $json.text }}\",\n        \"embedding\": {{ JSON.stringify($json.embedding) }},\n        \"source\": \"{{ $json.source }}\"\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        848,
+        48
+      ],
+      "id": "e1f33a4f-8281-4274-9040-f2e4c2c9ed16",
+      "name": "Insert to Neo4j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://en.wikipedia.org/api/rest_v1/page/summary/Retrieval-augmented_generation",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot/1.0 (sobr0002@stud.ek.dk)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        64,
+        48
+      ],
+      "id": "df856e88-7a3c-4e81-bc1e-1de5408b7dd9",
+      "name": "Wikipedia Fetch"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Wikipedia Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Embed": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Insert to Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Chunks": {
+      "main": [
+        [
+          {
+            "node": "Ollama Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia Fetch": {
+      "main": [
+        [
+          {
+            "node": "Sample Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "eda6a5c2-c0b0-487c-b21f-30c8a1a7f7e9",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-09T15:12:20.413Z",
+      "createdAt": "2026-03-09T15:12:20.413Z",
+      "role": "workflow:owner",
+      "workflowId": "PNhwte2suV7mlPxeabb34",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
