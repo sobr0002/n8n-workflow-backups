@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-04-27T16:59:54.489Z",
+  "updatedAt": "2026-04-27T17:00:32.034Z",
   "createdAt": "2026-04-27T16:51:38.357Z",
   "id": "ahQL-Dmq6XKDhh8IbZqSo",
   "name": "Automated daily workflow backup to GitHub 2",
@@ -118,7 +118,7 @@
           "cachedResultName": "n8n-workflow-backups",
           "cachedResultUrl": "https://github.com/sobr0002/n8n-workflow-backups"
         },
-        "filePath": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json",
+        "filePath": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.name }}.json",
         "fileContent": "={{ $('To base64').item.json.data }}",
         "commitMessage": "=backup-{{ $('Commit date & file name').item.json.commitDate }}"
       },
@@ -412,7 +412,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "66d52c9c-8f06-4cce-9622-2f2f13067323",
+  "versionId": "24801e8b-7da3-4832-91f6-b0cb3f024d91",
   "activeVersionId": null,
   "triggerCount": 0,
   "shared": [
