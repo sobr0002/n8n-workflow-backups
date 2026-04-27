@@ -1,0 +1,158 @@
+{
+  "updatedAt": "2026-03-09T15:57:35.470Z",
+  "createdAt": "2026-03-09T09:46:20.792Z",
+  "id": "AHUE-Ileoq2uRWrHUzSHz",
+  "name": "Embed to Neo4J",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -16
+      ],
+      "id": "7be93c05-9840-4087-b4c2-2e2b5dec0a51",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nomic-embed-text\",\n  \"prompt\": \"{{ $json.text }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "a86527d7-9a69-4138-b7f1-3f4d0f6dbf8e",
+      "name": "Ollama Embed"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sampleChunks = $('Sample Chunks').all();\n\nreturn sampleChunks.map((chunk, index) => {\n  const embeddingItem = $('Ollama Embed').all()[index];\n  return {\n    json: {\n      id: chunk.json.id,\n      text: chunk.json.text,\n      embedding: embeddingItem.json.embedding\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "bb24e231-4c7a-4084-a17d-02ee06117f14",
+      "name": "Merge Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chunks = [\n  \"Neo4j is a graph database that stores data as nodes and relationships.\",\n  \"Vector embeddings represent text as numerical arrays for semantic search.\",\n  \"RAG combines retrieval from a database with text generation from an LLM.\",\n  \"Ollama allows you to run large language models locally on your machine.\",\n  \"n8n is a workflow automation tool that connects different services together.\"\n];\n\nreturn chunks.map((text, index) => ({\n  json: {\n    id: index,\n    text: text\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "51c384b6-e284-45ac-a8f5-c33b0172e443",
+      "name": "Sample Chunks"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"statements\": [\n    {\n      \"statement\": \"CREATE (c:Chunk {id: $id, text: $text, embedding: $embedding})\",\n      \"parameters\": {\n        \"id\": \"{{ $json.id }}\",\n        \"text\": \"{{ $json.text }}\",\n        \"embedding\": {{ JSON.stringify($json.embedding) }}\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "83984988-61d8-4a87-9a6b-ed79d312a4c5",
+      "name": "Send to Neo4j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "Unnamed credential"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Sample Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Embed": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Send to Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Chunks": {
+      "main": [
+        [
+          {
+            "node": "Ollama Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "600d5845-e76e-4c21-a8c3-7a06f5f656f7",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-09T09:46:20.796Z",
+      "createdAt": "2026-03-09T09:46:20.796Z",
+      "role": "workflow:owner",
+      "workflowId": "AHUE-Ileoq2uRWrHUzSHz",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
