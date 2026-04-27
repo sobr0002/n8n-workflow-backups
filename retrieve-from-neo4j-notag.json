@@ -1,0 +1,166 @@
+{
+  "updatedAt": "2026-03-09T16:47:13.980Z",
+  "createdAt": "2026-03-09T14:25:25.422Z",
+  "id": "NXebjFverKuZTnx111vwm",
+  "name": "Retrieve from Neo4j",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "452188db-989e-4a6e-ae24-93613f84065d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    question: \"How do LLMs use external data sources?\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2fee7754-88c8-420c-a8bb-8e5cba11d4a7",
+      "name": "Set Question"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:7474/db/neo4j/tx/commit",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"statements\": [\n    {\n      \"statement\": \"CALL db.index.vector.queryNodes('course_chunks', 3, $embedding) YIELD node, score RETURN node.text AS text, node.source AS source, score\",\n      \"parameters\": {\n        \"embedding\": {{ JSON.stringify($('Ollama Embed').first().json.embedding) }}\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "eb43daa5-0990-4dc1-9b52-9f57116589de",
+      "name": "Query Neo4j",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $json.results[0].data;\n\nreturn results.map((row) => ({\n  json: {\n    text: row.row[0],\n    source: row.row[1] || \"manual\",\n    score: row.row[2]\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "def15654-7a50-4a9c-aee9-cfda50844b81",
+      "name": "Parse Results"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/embeddings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"nomic-embed-text\",\n  \"prompt\": \"{{ $json.question }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "0b049d2e-1d94-45b5-8c7b-02892749882e",
+      "name": "Ollama Embed",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pZ6fSL57NtM11zzy",
+          "name": "Unnamed credential"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Set Question",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Question": {
+      "main": [
+        [
+          {
+            "node": "Ollama Embed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Neo4j": {
+      "main": [
+        [
+          {
+            "node": "Parse Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Embed": {
+      "main": [
+        [
+          {
+            "node": "Query Neo4j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "32671870-a718-475d-8037-413a1a5148cd",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-09T14:25:25.425Z",
+      "createdAt": "2026-03-09T14:25:25.425Z",
+      "role": "workflow:owner",
+      "workflowId": "NXebjFverKuZTnx111vwm",
+      "projectId": "yBptm4mfF88EIOKa"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
